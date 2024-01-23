@@ -2,8 +2,17 @@ const express = require('express');
 const router = require('express').Router();
 const config = require('../config/.config.js')
 const axios = require('axios');
+const fs = require('fs');
+const xlsx = require('xlsx');
 
 
+// mongo 
+const conn = require('../config/mongoConfig.js');
+
+const propostaSchema = require('../models/propostaModel.js');
+const propostas = conn.model('pesquisaCpf', propostaSchema);
+
+console.log(propostas)
 
 //facta 
 
@@ -29,14 +38,15 @@ router.use(async (req, res, next) => {
         const response = await axios.get(config.urlGetToken, AxiosConfig)
             .then(response => {
 
+                const data = tratarResposta(response.data)
+                console.log(data)
                 console.log("Novo token gerado com sucesso")
-                console.log(response.data); // Dados da resposta do sistema externo
+                //  console.log(response.data); // Dados da resposta do sistema externo
 
 
                 const expiration = new Date(now.getTime() + 3600 * 1000);
 
-
-                config.token = `Bearer ${response.data.token}`
+                config.token = `Bearer ${data.token}`
                 config.expiration = expiration
                 return next();
 
@@ -65,44 +75,9 @@ router.get('/', async (req, res, next) => {
 
     res.status(200).send({ token: config.token, expiration: config.expiration })
 })
-
-router.get('/propostas/cliente', async (req, res, next) => {
-
-
-    console.log(req.query)
-
-    const url = 'https://webservice-homol.facta.com.br/proposta/consulta-cliente?';
-
-    if (!req.query.cpf) {
-
-        return res.status(404).send('Informar cpf')
-    }
-
-    const params = {
-        cpf: req.query.cpf,
-    };
-
-    const headers = {
-        Authorization: config.token,
-
-    };
-
-    axios.get(url, { params, headers })
-        .then(response => {
-            console.log(response.data);
-            return res.send(response.data)
-        })
-        .catch(error => {
-            console.error(error);
-            return res.send(error)
-        });
-
-
-})
-
-
 router.get('/propostas', async (req, res, next) => {
 
+    console.log('aqui')
 
     const url = 'https://webservice-homol.facta.com.br/proposta/andamento-propostas?';
     const params = {
@@ -125,49 +100,111 @@ router.get('/propostas', async (req, res, next) => {
     await axios.get(url, { params, headers })
         .then(async response => {
 
-            const newArr = [] = await response.data.propostas.filter(async item => {
-
-                if (!item.cpf) return 0
-
-                let params = {
-                    cpf: item.cpf
-                };
-
-                const tel = await axios.get('https://webservice-homol.facta.com.br/proposta/consulta-cliente?', { params, headers })
-                    .then(responseCliente => {
-                        return responseCliente.data.cliente[0].CELULAR
-                    })
-                    .catch(errorCliente => {
-                        return console.log(errorCliente.data)
-                       // return console.log(errorCliente)
-                    })
-
-
-
-                item.celular = tel
-              //  console.log(item)
-                return item
-
-            })
-
-            console.log(newArr)
-
-
+            console.log(response.data.propostas)
+            return res.send(response.data)
         })
         .catch(error => {
-
-            return error
+            return res.send(error)
         });
 
 
 
-    return
+})
+
+router.get('/propostas/cliente', async (req, res, next) => {
+
+    console.log(req.query)
+
+    const url = 'https://webservice-homol.facta.com.br/proposta/consulta-cliente?';
+
+    if (!req.query.cpf) {
+
+        return res.status(404).send('Informar cpf')
+    }
+
+    const params = {
+        cpf: req.query.cpf,
+    };
+
+    const headers = {
+        Authorization: config.token,
+
+    };
+
+    axios.get(url, { params, headers })
+        .then(response => {
+
+
+            return res.send(response.data)
+
+        })
+        .catch(error => {
+            console.error(error);
+            return res.send(error)
+        });
+
+
+})
+
+router.get('/xls', async (req, res, next) => {
+
+    // Lendo o arquivo Excel
+    const workbook = xlsx.readFile('D:/downloads/Propostas-13-01-2024 (1).xlsx');
+    const sheetName = workbook.SheetNames[0];
+    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    const propsInseridas = []
+    
+    data.map(async (prop, index) => {
+        try {
+            const existenteProposta = await propostas.findOne({ ID_PROPOSTA: prop.ID_PROPOSTA });
+    
+            if (!existenteProposta) {
+                const propostaInserida = await propostas.create(prop);
+    
+                propsInseridas.push(propostaInserida);
+                console.log('Proposta inserida com sucesso:', propostaInserida);
+            } else {
+                console.log('Já existe uma proposta com o mesmo ID_PROPOSTA:', existenteProposta);
+            }
+        } catch (err) {
+            console.error('Erro ao verificar ou inserir proposta:', err);
+        }
+    });
+
+
+    return res.send(propsInseridas)
 
 
 })
 
 
+function tratarResposta(resposta) {
+    let dados = {};
 
+    if (typeof resposta === 'string') {
+        // Se a resposta for uma string, verifica se contém avisos
+        if (resposta.includes('<br />')) {
+            const jsonParte = resposta.match(/{(.+?)}/);
+            if (jsonParte) {
+                dados = JSON.parse(jsonParte[0]);
+            } else {
+                console.error('Erro ao analisar a parte JSON da resposta.');
+            }
+        } else {
+            // Se não há avisos, assume que a string é JSON
+            try {
+                dados = JSON.parse(resposta);
+            } catch (erro) {
+                console.error('Erro ao analisar a resposta JSON:', erro.message);
+            }
+        }
+    } else if (typeof resposta === 'object') {
+        // Se a resposta já é um objeto, assume que está no formato desejado
+        dados = resposta;
+    }
+
+    return dados;
+}
 
 
 

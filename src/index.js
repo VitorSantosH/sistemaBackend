@@ -1,9 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const fs = require('fs');
-const xlsx = require('xlsx');
-const { MongoClient } = require('mongodb');
 const http = require('http');
 const app = express();
 const router = require('./router/index.js');
@@ -28,40 +25,7 @@ httpServer.listen(portHttp, function () {
 });
 
 
-/*
-// Lendo o arquivo Excel
-const workbook = xlsx.readFile('D:/downloads/Propostas-13-01-2024 (1).xlsx');
-const sheetName = workbook.SheetNames[0];
-const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-console.log(data)
-*/
-
-/*
-// Configurações do MongoDB
-const mongoURI = 'sua_uri_do_mongo_db';
-const dbName = 'seu_banco_de_dados';
-const collectionName = 'sua_colecao';
-
-// Conectando ao MongoDB
-MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
-  if (err) throw err;
-
-  const db = client.db(dbName);
-  const collection = db.collection(collectionName);
-
-  // Inserindo dados no MongoDB
-  collection.insertMany(data, (err, result) => {
-    if (err) throw err;
-
-    console.log(`${result.insertedCount} documentos inseridos com sucesso.`);
-    
-    // Fechando a conexão com o MongoDB
-    client.close();
-  });
-});
-
-*/
 
 
 /**
