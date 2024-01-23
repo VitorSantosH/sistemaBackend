@@ -4,7 +4,8 @@ const config = require('../config/.config.js')
 const axios = require('axios');
 const fs = require('fs');
 const xlsx = require('xlsx');
-
+const csvParser = require('csv-parser');
+const { Readable } = require('stream'); 
 
 // mongo 
 const conn = require('../config/mongoConfig.js');
@@ -150,8 +151,30 @@ router.get('/propostas/cliente', async (req, res, next) => {
 
 })
 
-router.get('/upload-xls', async (req, res, next) => {
+router.post('/upload-xls', multer(multerConfig).single('file'), async (req, res, next) => {
 
+    const file = req.file;
+
+    if (file) {
+        const results = [];
+    
+        // Use o conteúdo do buffer para criar o stream
+        const bufferStream = new Readable();
+        bufferStream.push(file.buffer);
+        bufferStream.push(null);
+    
+        // Pipe o bufferStream para o csvParser
+        bufferStream.pipe(csvParser())
+          .on('data', (data) => results.push(data))
+          .on('end', () => {
+            console.log('Objetos a partir do CSV:', results);
+            // Agora você pode fazer o que quiser com o array de objetos
+            res.status(200).json({ results });
+          });
+      } else {
+        res.status(400).json({ error: 'Nenhum arquivo CSV fornecido.' });
+      }
+    /*
     // Lendo o arquivo Excel
     const workbook = xlsx.readFile('D:/downloads/Propostas-13-01-2024 (1).xlsx');
     const sheetName = workbook.SheetNames[0];
@@ -177,7 +200,7 @@ router.get('/upload-xls', async (req, res, next) => {
 
 
     return res.send(propsInseridas)
-
+*/
 
 })
 
