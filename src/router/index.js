@@ -8,11 +8,14 @@ const xlsx = require('xlsx');
 
 // mongo 
 const conn = require('../config/mongoConfig.js');
-
 const propostaSchema = require('../models/propostaModel.js');
 const propostas = conn.model('pesquisaCpf', propostaSchema);
 
 console.log(propostas)
+
+// multer config
+const multer = require("multer");
+const multerConfig = require('../config/multer');
 
 //facta 
 
@@ -75,6 +78,7 @@ router.get('/', async (req, res, next) => {
 
     res.status(200).send({ token: config.token, expiration: config.expiration })
 })
+
 router.get('/propostas', async (req, res, next) => {
 
     console.log('aqui')
@@ -146,7 +150,7 @@ router.get('/propostas/cliente', async (req, res, next) => {
 
 })
 
-router.get('/xls', async (req, res, next) => {
+router.get('/upload-xls', async (req, res, next) => {
 
     // Lendo o arquivo Excel
     const workbook = xlsx.readFile('D:/downloads/Propostas-13-01-2024 (1).xlsx');
@@ -176,7 +180,6 @@ router.get('/xls', async (req, res, next) => {
 
 
 })
-
 
 function tratarResposta(resposta) {
     let dados = {};

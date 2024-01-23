@@ -23,6 +23,6 @@ const equipeSchema = new Schema({
     ],
 });
 
-const Equipe = mongoose.model('EquipeCrmSys', equipeSchema);
 
-module.exports = Equipe;
+
+module.exports = equipeSchema;
