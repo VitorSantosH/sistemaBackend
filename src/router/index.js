@@ -6,6 +6,7 @@ const fs = require('fs');
 const xlsx = require('xlsx');
 const csvParser = require('csv-parser');
 const { Readable } = require('stream'); 
+const csv = require('csvtojson');
 
 // mongo 
 const conn = require('../config/mongoConfig.js');
@@ -167,9 +168,14 @@ router.post('/upload-xls', multer(multerConfig).single('file'), async (req, res,
         bufferStream.pipe(csvParser())
           .on('data', (data) => results.push(data))
           .on('end', () => {
-            console.log('Objetos a partir do CSV:', results);
+
+            const formatedData = []  = results.map((obj) => {
+                return convertCsvFormat(obj)
+            })
+
+           // console.log('Objetos a partir do CSV:', results);
             // Agora você pode fazer o que quiser com o array de objetos
-            res.status(200).json({ results });
+            res.status(200).json({ formatedData });
           });
       } else {
         res.status(400).json({ error: 'Nenhum arquivo CSV fornecido.' });
@@ -232,6 +238,24 @@ function tratarResposta(resposta) {
     return dados;
 }
 
+function convertCsvFormat(csvData) {
+    const entries = Object.entries(csvData);
+    const result = {};
+  
+    for (const [key, value] of entries) {
+      const fields = key.split(';');
+      const data = value.split(';');
+  
+      const obj = {};
+      for (let i = 0; i < fields.length; i++) {
+        obj[fields[i]] = isNaN(data[i]) ? data[i] : parseFloat(data[i]);
+      }
+  
+      result[key] = obj;
+    }
+  
+    return result;
+  }
 
 
 module.exports = router;
