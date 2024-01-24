@@ -6,7 +6,7 @@ const propostaSchema = new mongoose.Schema({
     CLIENTE: String,
     CPF: { type: Number,  required: true },
     DATA_NASCIMENTO: Date,
-    RG: Number,
+    RG: mongoose.Schema.Types.Mixed,
     DATA_RG: Date,
     ORGAO_RG: String,
     UF_RG: String,

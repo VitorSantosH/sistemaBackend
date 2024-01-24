@@ -1,7 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const crypto = require("crypto");
-
+const mime = require('mime-types');
 
 const multerConfig = {
     storage: multer.memoryStorage(), // Armazena o arquivo na memória temporária
@@ -12,9 +12,11 @@ const multerConfig = {
       const allowedMimes = [
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // Adicionado para aceitar XLSX
         'xlsx',
+        'application/vnd.ms-excel',
         'text/csv'
       ];
-  
+
+     
       if (allowedMimes.includes(file.mimetype)) {
         cb(null, true);
       } else {

@@ -5,7 +5,7 @@ const axios = require('axios');
 const fs = require('fs');
 const xlsx = require('xlsx');
 const csvParser = require('csv-parser');
-const { Readable } = require('stream'); 
+const { Readable } = require('stream');
 const csv = require('csvtojson');
 
 // mongo 
@@ -155,58 +155,84 @@ router.get('/propostas/cliente', async (req, res, next) => {
 router.post('/upload-xls', multer(multerConfig).single('file'), async (req, res, next) => {
 
     const file = req.file;
-
+    const stringDMerda = "ID_PROPOSTA;NOME;CLIENTE;CPF;DATA_NASCIMENTO;RG;DATA_RG;ORGAO_RG;UF_RG;ESTADO_CIVIL;NOME_PAI;NOME_MAE;SEXO;ID_ESPECIE_BENEFICIO;ESPECIE_BENEFICIO;CEP;ENDERECO;NUMERO;COMPLEMENTO;BAIRRO;CIDADE;TELEFONE;TELEFONE2;EMAIL;ESTADO;NATURALIDADE;MATRICULA;BANCO;AGENCIA;CONTA;UF_MANTENEDORA;UNIDADE_NEGOCIOS;SUPERVISOR;ID_TIPO_CONTA_PAGAMENTO;ID_RECEBIMENTO_CARTAO;ID_TIPO_CONTA;BANCO_RECEBIMENTO;AGENCIA_RECEBIMENTO;CONTA_RECEBIMENTO;POSSUI_REPRESENTANTE;FORMA_CONTRATO;CONVENIO;FINANCEIRA_CIA;TABELA_COMISSAO;AGENTE;AGENTE_ALTERACAO;PRAZO;RENDA;VALOR_BASE_COMISSAO;NUMERO_ACOMPANHAMENTO;DATA_HORA_CADASTRO;DATA_HORA;ATIVO;STATUS_PROPOSTA;STATUS_FORMALIZACAO;PARCELA;PORTABILIDADE_MARGEM_AGREGADA;PORTABILIDADE_PARCELA_FINAL;PORTABILIDADE_VALOR_BASE_COMISSAO;PORTABILIDADE_PRAZO_RESTANTE;PORTABILIDADE_SALDO_DEVEDOR;PORTABILIDADE_BANCO_PORTADO;LINK;MOTIVO_RECUSA;ULTIMA_OBSERVACAO"
+    
     if (file) {
         const results = [];
-    
+
+        let headerSkipped = false; 
         // Use o conteúdo do buffer para criar o stream
         const bufferStream = new Readable();
         bufferStream.push(file.buffer);
         bufferStream.push(null);
-    
+
         // Pipe o bufferStream para o csvParser
         bufferStream.pipe(csvParser())
-          .on('data', (data) => results.push(data))
-          .on('end', () => {
-
-            const formatedData = []  = results.map((obj) => {
-                return convertCsvFormat(obj)
-            })
-
-           // console.log('Objetos a partir do CSV:', results);
-            // Agora você pode fazer o que quiser com o array de objetos
-            res.status(200).json({ formatedData });
-          });
-      } else {
-        res.status(400).json({ error: 'Nenhum arquivo CSV fornecido.' });
-      }
-    /*
-    // Lendo o arquivo Excel
-    const workbook = xlsx.readFile('D:/downloads/Propostas-13-01-2024 (1).xlsx');
-    const sheetName = workbook.SheetNames[0];
-    const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-    const propsInseridas = []
-    
-    data.map(async (prop, index) => {
-        try {
-            const existenteProposta = await propostas.findOne({ ID_PROPOSTA: prop.ID_PROPOSTA });
-    
-            if (!existenteProposta) {
-                const propostaInserida = await propostas.create(prop);
-    
-                propsInseridas.push(propostaInserida);
-                console.log('Proposta inserida com sucesso:', propostaInserida);
+        .on('data', (data) => {
+            if (!headerSkipped) {
+                // Se o cabeçalho ainda não foi pulado, apenas atualize a flag
+                headerSkipped = true;
             } else {
-                console.log('Já existe uma proposta com o mesmo ID_PROPOSTA:', existenteProposta);
+                // Adicione o objeto interno ao array results
+                results.push(data);
             }
-        } catch (err) {
-            console.error('Erro ao verificar ou inserir proposta:', err);
-        }
-    });
+        })
+        .on('end', () => {
+                const formatedData = [] = results.map((obj) => {
+                    return convertCsvFormat(obj)
+                })
+
+                const propsInseridas = [];
+                let propostasJaExistentes = 0;
+                let errosAoInserir = [];
+
+                const promises = formatedData.map(async (prop, index) => {
+
+                    
+                 //  return console.log(prop[stringDMerda])
+                 const propTratada = prop[stringDMerda]
+
+                    try {
+                        const existenteProposta = await propostas.findOne({ ID_PROPOSTA: propTratada.ID_PROPOSTA });
+
+                        if (!existenteProposta) {
+                            const propostaInserida = await propostas.create(propTratada);
+
+                            propsInseridas.push(propostaInserida);
+                            console.log('Proposta inserida com sucesso:', propostaInserida);
+                        } else {
+
+                            propostasJaExistentes++
+                            console.log('Já existe uma proposta com o mesmo ID_PROPOSTA:', existenteProposta);
+                        }
+                    } catch (err) {
+
+                        errosAoInserir.push(err)
+                        console.error('Erro ao verificar ou inserir proposta:', err);
+                    }
+                });
+
+                Promise.all(promises)
+                    .then(() => {
+                        // Tudo terminou, agora você pode enviar a resposta
+                        res.status(200).json({
+                            propostasInseridas: propsInseridas,
+                            jaExistentes: propostasJaExistentes,
+                            errosInserir: errosAoInserir
+                        });
+                    })
+                    .catch((error) => {
+                        // Se ocorreu algum erro durante as operações assíncronas, trate aqui
+                        console.error('Erro ao processar as propostas:', error);
+                        res.status(500).json({ error: 'Erro interno do servidor' });
+                    });
 
 
-    return res.send(propsInseridas)
-*/
+
+            });
+    } else {
+        res.status(400).json({ error: 'Nenhum arquivo CSV fornecido.' });
+    }
 
 })
 
@@ -241,21 +267,21 @@ function tratarResposta(resposta) {
 function convertCsvFormat(csvData) {
     const entries = Object.entries(csvData);
     const result = {};
-  
+
     for (const [key, value] of entries) {
-      const fields = key.split(';');
-      const data = value.split(';');
-  
-      const obj = {};
-      for (let i = 0; i < fields.length; i++) {
-        obj[fields[i]] = isNaN(data[i]) ? data[i] : parseFloat(data[i]);
-      }
-  
-      result[key] = obj;
+        const fields = key.split(';');
+        const data = value.split(';');
+
+        const obj = {};
+        for (let i = 0; i < fields.length; i++) {
+            obj[fields[i]] = isNaN(data[i]) ? data[i] : parseFloat(data[i]);
+        }
+
+        result[key] = obj;
     }
-  
+
     return result;
-  }
+}
 
 
 module.exports = router;
