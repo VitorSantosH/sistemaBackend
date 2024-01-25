@@ -111,9 +111,9 @@ router.get('/propostas', async (req, res, next) => {
     const retorno = await propostas.find(query);
 
 
-   // console.log(respFacta)
+    console.log(respFacta)
 
-    Promise.all([respFacta, retorno ])
+    Promise.all([respFacta, retorno])
         .then(async () => {
 
             return res.send(retorno)
@@ -322,14 +322,17 @@ function convertCsvFormat(csvData) {
 }
 
 async function getPropostasFacta(query) {
+
+    let queryData = query ? query : { CPF: '', NUMERO_ACOMPANHAMENTO: ''}
+
     const url = 'https://webservice-homol.facta.com.br/proposta/andamento-propostas?';
     const params = {
         // convenio: 3,
         data_fim: '',
         data_ini: '',
         averbador: '',
-        cpf: query.CPF || '',
-        af: query.NUMERO_ACOMPANHAMENTO,
+        cpf: queryData.CPF,
+        af: queryData.NUMERO_ACOMPANHAMENTO,
         data_nascimento: "",
         opcao_valor: "",
         produto: "",
