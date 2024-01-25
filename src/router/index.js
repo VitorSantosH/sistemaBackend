@@ -81,34 +81,48 @@ router.get('/', async (req, res, next) => {
     res.status(200).send({ token: config.token, expiration: config.expiration })
 })
 
-
 router.get('/propostas', async (req, res, next) => {
 
+    console.log(req.query)
     console.log('aqui')
     // verifica se veio dados na pesquisa id, cpf ou nome do cliente, caso nao tenha retorna todos as propostas
     let query;
 
+
+
     if (req.query.CPF) {
 
-        query = { CPF: parametro };
+        query = { CPF: req.query.CPF };
 
-    } else if (req.query.ID_PROPOSTA) {
+    } else if (req.query.NUMERO_ACOMPANHAMENTO) {
 
-        query = { ID_PROPOSTA: req.query.ID_PROPOSTA }
+        query = { NUMERO_ACOMPANHAMENTO: req.query.NUMERO_ACOMPANHAMENTO }
 
     } else if (req.query.NOME) {
         query = { NOME: req.query.NOME };
     } else {
 
-        const retorno = await propostas.find();
-        return res.send(retorno)
+        // const retorno = await propostas.find();
+        //return res.send(retorno)
+        query = undefined
     }
 
+    const respFacta = getPropostasFacta(query)
+    const retorno = await propostas.find(query);
 
 
-    const retorno = await propostas.findOne(query);
+   // console.log(respFacta)
 
-    return res.send(retorno)
+    Promise.all([respFacta, retorno ])
+        .then(async () => {
+
+            return res.send(retorno)
+        })
+        .catch(err => {
+            return res.send(err)
+        })
+
+
 
 })
 
@@ -118,11 +132,12 @@ router.get('/propostas-facta', async (req, res, next) => {
 
     const url = 'https://webservice-homol.facta.com.br/proposta/andamento-propostas?';
     const params = {
-        convenio: 3,
+        // convenio: 3,
         data_fim: '',
         data_ini: '',
         averbador: '',
         cpf: req.query.cpf || '',
+        af: req.query.NUMERO_ACOMPANHAMENTO,
         data_nascimento: "",
         opcao_valor: "",
         produto: "",
@@ -143,7 +158,6 @@ router.get('/propostas-facta', async (req, res, next) => {
         .catch(error => {
             return res.send(error)
         });
-
 
 
 })
@@ -186,92 +200,77 @@ router.get('/propostas/cliente', async (req, res, next) => {
 router.post('/upload-xls', multer(multerConfig).single('file'), async (req, res, next) => {
 
     const file = req.file;
-    const chaveStringObj = "ID_PROPOSTA;NOME;CLIENTE;CPF;DATA_NASCIMENTO;RG;DATA_RG;ORGAO_RG;UF_RG;ESTADO_CIVIL;NOME_PAI;NOME_MAE;SEXO;ID_ESPECIE_BENEFICIO;ESPECIE_BENEFICIO;CEP;ENDERECO;NUMERO;COMPLEMENTO;BAIRRO;CIDADE;TELEFONE;TELEFONE2;EMAIL;ESTADO;NATURALIDADE;MATRICULA;BANCO;AGENCIA;CONTA;UF_MANTENEDORA;UNIDADE_NEGOCIOS;SUPERVISOR;ID_TIPO_CONTA_PAGAMENTO;ID_RECEBIMENTO_CARTAO;ID_TIPO_CONTA;BANCO_RECEBIMENTO;AGENCIA_RECEBIMENTO;CONTA_RECEBIMENTO;POSSUI_REPRESENTANTE;FORMA_CONTRATO;CONVENIO;FINANCEIRA_CIA;TABELA_COMISSAO;AGENTE;AGENTE_ALTERACAO;PRAZO;RENDA;VALOR_BASE_COMISSAO;NUMERO_ACOMPANHAMENTO;DATA_HORA_CADASTRO;DATA_HORA;ATIVO;STATUS_PROPOSTA;STATUS_FORMALIZACAO;PARCELA;PORTABILIDADE_MARGEM_AGREGADA;PORTABILIDADE_PARCELA_FINAL;PORTABILIDADE_VALOR_BASE_COMISSAO;PORTABILIDADE_PRAZO_RESTANTE;PORTABILIDADE_SALDO_DEVEDOR;PORTABILIDADE_BANCO_PORTADO;LINK;MOTIVO_RECUSA;ULTIMA_OBSERVACAO"
 
     const retorno = convertXlsxToObject(file)
 
-    console.log(retorno)
+    const propsInseridas = [];
+    let propostasJaExistentes = 0;
+    let errosAoInserir = [];
+    let propostaAtt = [];
 
-    return res.send('ok')
-    /*  if (file) {
-          const results = [];
-  
-          let headerSkipped = false;
-          // Use o conteúdo do buffer para criar o stream
-          const bufferStream = new Readable();
-          bufferStream.push(file.buffer);
-          bufferStream.push(null);
-  
-          // Pipe o bufferStream para o csvParser
-          bufferStream.pipe(csvParser())
-              .on('data', (data) => {
-  
-                  if (!headerSkipped) {
-                      // Se o cabeçalho ainda não foi pulado, apenas atualize a flag
-                      headerSkipped = true;
-                  } else {
-                      // Adicione o objeto interno ao array results
-                      results.push(data);
-                  }
-              })
-              .on('end', () => {
-                  const formatedData = [] = results.map((obj) => {
-                      return convertCsvFormat(obj)
-                  })
-  
-                  const propsInseridas = [];
-                  let propostasJaExistentes = 0;
-                  let errosAoInserir = [];
-  
-                  const promises = formatedData.map(async (prop, index) => {
-  
-  
-                      //  return console.log(prop[chaveStringObj])
-                      const propTratada = prop[chaveStringObj]
-                      console.log(propTratada)
-                      try {
-                          const existenteProposta = await propostas.findOne({ ID_PROPOSTA: propTratada.ID_PROPOSTA });
-  
-                          if (!existenteProposta) {
-                              const propostaInserida = await propostas.create(propTratada);
-  
-                              propsInseridas.push(propostaInserida);
-                              console.log('Proposta inserida com sucesso:', propostaInserida);
-                          } else {
-  
-                              propostasJaExistentes++
-                              console.log('Já existe uma proposta com o mesmo ID_PROPOSTA:', existenteProposta);
-                          }
-                      } catch (err) {
-  
-                          errosAoInserir.push(err)
-                          console.error('Erro ao verificar ou inserir proposta:', err);
-                      }
-                  });
-  
-                  Promise.all(promises)
-                      .then(() => {
-                          // Tudo terminou, agora você pode enviar a resposta
-                          res.status(200).json({
-                              propostasInseridas: propsInseridas,
-                              jaExistentes: propostasJaExistentes,
-                              errosInserir: errosAoInserir
-                          });
-                      })
-                      .catch((error) => {
-                          // Se ocorreu algum erro durante as operações assíncronas, trate aqui
-                          console.error('Erro ao processar as propostas:', error);
-                          res.status(500).json({ error: 'Erro interno do servidor' });
-                      });
-  
-  
-  
-              });
-      } else {
-          res.status(400).json({ error: 'Nenhum arquivo CSV fornecido.' });
-      }
-  */
+    try {
+        const promises = retorno.map(async (prop, index) => {
+
+            console.log(prop)
+
+            try {
+                const existenteProposta = await propostas.findOne({ ID_PROPOSTA: prop.ID_PROPOSTA });
+
+                if (!existenteProposta) {
+                    const propostaInserida = await propostas.create(prop);
+
+                    propsInseridas.push(propostaInserida);
+                    console.log('Proposta inserida com sucesso:', propostaInserida);
+                } else {
+
+                    const propostaAtualizada = await propostas.updateOne(
+                        { ID_PROPOSTA: prop.ID_PROPOSTA },
+                        { $set: prop }
+                    );
+
+                    propostaAtt.push(propostaAtualizada)
+
+                    //  propostasJaExistentes++
+                    //  console.log('Já existe uma proposta com o mesmo ID_PROPOSTA:', existenteProposta);
+                }
+            } catch (err) {
+
+                errosAoInserir.push(err)
+                console.error('Erro ao verificar ou inserir proposta:', err);
+            }
+        });
+
+        Promise.all(promises)
+            .then(() => {
+                // Tudo terminou, agora você pode enviar a resposta
+                res.status(200).json({
+                    propostasInseridas: propsInseridas,
+                    jaExistentes: propostasJaExistentes,
+                    errosInserir: errosAoInserir,
+                    atualizadas: propostaAtt
+                });
+            })
+            .catch((error) => {
+                // Se ocorreu algum erro durante as operações assíncronas, trate aqui
+                console.error('Erro ao processar as propostas:', error);
+                res.status(500).json({ error: 'Erro interno do servidor' });
+            });
+    } catch (error) {
+        return res.send("Erro: " + error)
+    }
+
+
 })
+
+
+function convertXlsxToObject(file) {
+
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const result = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    return result;
+}
 
 function tratarResposta(resposta) {
     let dados = {};
@@ -301,16 +300,6 @@ function tratarResposta(resposta) {
     return dados;
 }
 
-
-function convertXlsxToObject(file) {
-
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const result = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    return result;
-}
-
 function convertCsvFormat(csvData) {
     const entries = Object.entries(csvData);
     const result = {};
@@ -330,6 +319,37 @@ function convertCsvFormat(csvData) {
     console.log(result)
 
     return result;
+}
+
+async function getPropostasFacta(query) {
+    const url = 'https://webservice-homol.facta.com.br/proposta/andamento-propostas?';
+    const params = {
+        // convenio: 3,
+        data_fim: '',
+        data_ini: '',
+        averbador: '',
+        cpf: query.CPF || '',
+        af: query.NUMERO_ACOMPANHAMENTO,
+        data_nascimento: "",
+        opcao_valor: "",
+        produto: "",
+        tipo_operacao: ""
+
+    };
+    const headers = {
+        Authorization: config.token,
+
+    };
+
+    await axios.get(url, { params, headers })
+        .then(async response => {
+
+            console.log(response.data.propostas)
+            return response.data
+        })
+        .catch(error => {
+            return res.send(error)
+        });
 }
 
 
