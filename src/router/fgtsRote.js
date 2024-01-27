@@ -7,6 +7,8 @@ const xlsx = require('xlsx');
 const csvParser = require('csv-parser');
 const { Readable } = require('stream');
 const csv = require('csvtojson');
+const moment = require('moment');
+
 
 // mongo 
 const conn = require('../config/mongoConfig.js');
@@ -76,19 +78,11 @@ router.use(async (req, res, next) => {
 
 })
 
-router.get('/', async (req, res, next) => {
-
-    res.status(200).send({ token: config.token, expiration: config.expiration })
-})
-
 router.get('/propostas', async (req, res, next) => {
 
-    console.log(req.query)
-    console.log('aqui')
+    //console.log(req.query)
     // verifica se veio dados na pesquisa id, cpf ou nome do cliente, caso nao tenha retorna todos as propostas
     let query;
-
-
 
     if (req.query.CPF) {
 
@@ -107,21 +101,27 @@ router.get('/propostas', async (req, res, next) => {
         query = undefined
     }
 
-    const respFacta = getPropostasFacta(query)
-    const retorno = await propostas.find(query);
+
+    try {
+        const responseFacta = await getPropostasFacta(query);
+
+        console.log(responseFacta);
 
 
-    console.log(respFacta)
+        // Pega a resposta do Facta e atualiza o banco
+        const ret = await Promise.all(responseFacta.map(async proposta => {
+            return findAndUpdate(proposta);
+        }));
 
-    Promise.all([respFacta, retorno])
-        .then(async () => {
+        console.log(ret);
 
-            return res.send(retorno)
-        })
-        .catch(err => {
-            return res.send(err)
-        })
+        const retorno = await propostas.find(query);
+        return res.send(retorno);
 
+    } catch (err) {
+        console.error(err);
+        return res.send("Erro: " + err);
+    }
 
 
 })
@@ -262,6 +262,39 @@ router.post('/upload-xls', multer(multerConfig).single('file'), async (req, res,
 
 })
 
+router.post('/editeProposta', async (req, res, next) => {
+
+    console.log(req.body)
+
+    const query = { ID_PROPOSTA: req.body.USER.ID };
+
+    const update = {
+        $set: {
+            STATUS_PROPOSTA: req.body.STATUS || req.body.USER.STATUS,
+            TELEFONE: req.body.TELEFONE || req.body.USER.TELEFONE
+        }
+    };
+
+    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+    propostas.findOneAndUpdate(query, update, options)
+        .then((result) => {
+            if (result) {
+                console.log('Proposta existente atualizada:', result);
+                return res.send({message:'Proposta existente atualizada:', result})
+            } else {
+                return res.send({message:'Nova proposta inserida.', result})
+            }
+
+        })
+        .catch((error) => {
+            console.error('Erro ao atualizar proposta:', error);
+            return  res.send({message: 'Erro ao atualizar proposta:', error})
+        })
+
+    
+})
+
 function convertXlsxToObject(file) {
 
     const workbook = xlsx.read(file.buffer, { type: 'buffer' });
@@ -322,7 +355,7 @@ function convertCsvFormat(csvData) {
 
 async function getPropostasFacta(query) {
 
-    let queryData = query ? query : { CPF: '', NUMERO_ACOMPANHAMENTO: ''}
+    let queryData = query ? query : { CPF: '', NUMERO_ACOMPANHAMENTO: '' }
 
     const url = 'https://webservice-homol.facta.com.br/proposta/andamento-propostas?';
     const params = {
@@ -330,30 +363,109 @@ async function getPropostasFacta(query) {
         data_fim: '',
         data_ini: '',
         averbador: '',
-        cpf: queryData.CPF,
-        af: queryData.NUMERO_ACOMPANHAMENTO,
+        cpf: queryData.CPF ? queryData.CPF : "",
+        af: queryData.NUMERO_ACOMPANHAMENTO ? queryData.NUMERO_ACOMPANHAMENTO : "",
         data_nascimento: "",
         opcao_valor: "",
         produto: "",
         tipo_operacao: ""
 
     };
+
     const headers = {
         Authorization: config.token,
 
     };
 
-    await axios.get(url, { params, headers })
-        .then(async response => {
+    const response = await axios.get(url, { params, headers })
+    if (response.data.erro) {
+        return [];
+    }
+    console.log('getPropostasFacta');
 
-            console.log(response.data.propostas)
-            return response.data
-        })
-        .catch(error => {
-            return res.send(error)
-        });
+    return response.data.propostas;
 }
 
+async function findAndUpdate(proposta) {
+
+    const query = { ID_PROPOSTA: proposta.proposta };
+
+    const valorAtual = await propostas.findOne(query, { ID_PROPOSTA: 1 });
+
+    const update = {
+        $set: {
+            ID_PROPOSTA: proposta.proposta ? proposta.proposta : (valorAtual ? valorAtual.ID_PROPOSTA : null),
+            NOME: proposta.cliente,
+            CLIENTE: proposta.cliente,
+            CPF: proposta.cpf,
+            DATA_NASCIMENTO: proposta.data_nascimento ? new Date(proposta.data_nascimento) : null,
+            BANCO: proposta.banco,
+            AGENCIA: proposta.agencia,
+            CONTA: proposta.conta,
+            CONVENIO: proposta.averbador,
+            FINANCEIRA_CIA: proposta.convenio,
+            TABELA_COMISSAO: proposta.tabela,
+            AGENTE: proposta.login_corretor,
+            PRAZO: proposta.data_efetivacao,
+            VALOR_BASE_COMISSAO: proposta.valor_bruto,
+            NUMERO_ACOMPANHAMENTO: proposta.codigo_af,
+            DATA_HORA_CADASTRO: proposta.data_digitacao ? moment(proposta.data_digitacao, 'DD/MM/YYYY').toDate() : null,
+            DATA_HORA: Date.now(),
+            STATUS_PROPOSTA: proposta.status_proposta,
+            PARCELA: proposta.vlrprestacao,
+            PORTABILIDADE_VALOR_BASE_COMISSAO: proposta.valor_bruto,
+        }
+    };
+
+    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+    propostas.findOneAndUpdate(query, update, options)
+        .then((result) => {
+            if (result) {
+                console.log('Proposta existente atualizada:', result);
+            } else {
+                console.log('Nova proposta inserida.');
+            }
+
+            return result
+        })
+        .catch((error) => {
+            console.error('Erro ao atualizar proposta:', error);
+            return
+        })
+
+
+}
+
+function convertFactaForMongo(proposta) {
+
+    const ret = {
+
+        ID_PROPOSTA: proposta.proposta,
+        NOME: proposta.cliente,
+        CLIENTE: proposta.cliente,
+        CPF: proposta.cpf,
+        DATA_NASCIMENTO: proposta.data_nascimento ? new Date(proposta.data_nascimento) : null,
+        BANCO: proposta.banco,
+        AGENCIA: proposta.agencia,
+        CONTA: proposta.conta,
+        CONVENIO: proposta.averbador,
+        FINANCEIRA_CIA: proposta.convenio,
+        TABELA_COMISSAO: proposta.tabela,
+        AGENTE: proposta.login_corretor,
+        PRAZO: proposta.data_efetivacao,
+        VALOR_BASE_COMISSAO: proposta.valor_bruto,
+        NUMERO_ACOMPANHAMENTO: proposta.codigo_af,
+        DATA_HORA_CADASTRO: proposta.data_digitacao,
+        DATA_HORA: Date.now(),
+        STATUS_PROPOSTA: proposta.status_proposta,
+        PARCELA: proposta.vlrprestacao,
+        PORTABILIDADE_VALOR_BASE_COMISSAO: proposta.valor_bruto,
+
+    }
+
+
+}
 
 
 const fgtsRoute = router
