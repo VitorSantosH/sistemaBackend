@@ -471,3 +471,51 @@ function convertFactaForMongo(proposta) {
 const fgtsRoute = router
 
 module.exports = fgtsRoute;
+
+
+/**
+ * 
+ server {
+    listen 80;
+    server_name siscorban.com;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name siscorban.com;
+
+    ssl_certificate /etc/letsencrypt/live/siscorban.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/siscorban.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:8009;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+- Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/siscorban.com/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/siscorban.com/privkey.pem
+   Your cert will expire on 2024-04-26. To obtain a new or tweaked
+   version of this certificate in the future, simply run certbot
+   again. To non-interactively renew *all* of your certificates, run
+   "certbot renew"
+ - Your account credentials have been saved in your Certbot
+   configuration directory at /etc/letsencrypt. You should make a
+   secure backup of this folder now. This configuration directory will
+   also contain certificates and private keys obtained by Certbot so
+   making regular backups of this folder is ideal.
+ - If you like Certbot, please consider supporting our work by:
+
+   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+   Donating to EFF:                    https://eff.org/donate-le
+
+ * 
+ */
