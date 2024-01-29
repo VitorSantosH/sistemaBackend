@@ -78,6 +78,12 @@ router.use(async (req, res, next) => {
 
 })
 
+router.post('/proposta/crete', async (req, res, next) => {
+
+    console.log(req.body)
+    return res.send('ok')
+})
+
 router.get('/propostas', async (req, res, next) => {
 
     //console.log(req.query)
@@ -125,6 +131,8 @@ router.get('/propostas', async (req, res, next) => {
 
 
 })
+
+
 
 router.get('/propostas-facta', async (req, res, next) => {
 

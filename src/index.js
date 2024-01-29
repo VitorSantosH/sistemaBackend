@@ -11,9 +11,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('common'));
-app.use('/', express.static("dist"));
 app.use('/home', express.static("dist"));
 app.use('/esteira-proposta', express.static("dist"));
+app.use('/', express.static("dist"));
 app.use(router);
 
 // app.use('/', express.static("dist"));
