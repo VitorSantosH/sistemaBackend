@@ -90,44 +90,80 @@ router.get('/propostas', async (req, res, next) => {
     // verifica se veio dados na pesquisa id, cpf ou nome do cliente, caso nao tenha retorna todos as propostas
     let query;
 
-    if (req.query.CPF) {
+    const consulta = {};
 
-        query = { CPF: req.query.CPF };
+    for (const key in req.query) {
+        if (req.query[key] !== '' && req.query[key] !== undefined) {
+            if (key === 'NOME') {
+                consulta[key] = { $regex: req.query[key], $options: 'i' };
+            } else if (key === "STATUS_PROPOSTA") {
+                consulta[key] = { $regex: req.query[key], $options: 'i' };
+            } else {
+                consulta[key] = req.query[key];
+            }
+        }
 
-    } else if (req.query.NUMERO_ACOMPANHAMENTO) {
-
-        query = { NUMERO_ACOMPANHAMENTO: req.query.NUMERO_ACOMPANHAMENTO }
-
-    } else if (req.query.NOME) {
-        query = { NOME: req.query.NOME };
-    } else {
-
-        // const retorno = await propostas.find();
-        //return res.send(retorno)
-        query = undefined
     }
 
 
     try {
-        const responseFacta = await getPropostasFacta(query);
 
-        console.log(responseFacta);
+        function objetoEstaVazio(objeto) {
+
+            if (Object.keys(objeto).length > 1) {
+                return true
+            } else if (objeto.key === "STATUS_PROPOSTA") {
+                return false
+            }
+
+            return false
+
+        }
 
 
-        // Pega a resposta do Facta e atualiza o banco
-        const ret = await Promise.all(responseFacta.map(async proposta => {
-            return findAndUpdate(proposta);
-        }));
+        if (objetoEstaVazio(consulta)) {
 
-        console.log(ret);
 
-        const retorno = await propostas.find(query);
+            const responseFacta = await getPropostasFacta(consulta);
+
+            console.log(responseFacta);
+
+
+            // Pega a resposta do Facta e atualiza o banco
+            const ret = await Promise.all(responseFacta.map(async proposta => {
+                return findAndUpdate(proposta);
+            }));
+        }
+
+        //  console.log(ret);
+
+        const retorno = await propostas.find(consulta);
         return res.send(retorno);
 
     } catch (err) {
         console.error(err);
         return res.send("Erro: " + err);
     }
+
+
+    /* if (req.query.CPF) {
+ 
+         query = { CPF: req.query.CPF };
+ 
+     } else if (req.query.NUMERO_ACOMPANHAMENTO) {
+ 
+         query = { NUMERO_ACOMPANHAMENTO: req.query.NUMERO_ACOMPANHAMENTO }
+ 
+     } else if (req.query.NOME) {
+         query = { NOME: req.query.NOME };
+     } else {
+ 
+         // const retorno = await propostas.find();
+         //return res.send(retorno)
+         query = undefined
+     }
+ */
+
 
 
 })
@@ -289,18 +325,18 @@ router.post('/editeProposta', async (req, res, next) => {
         .then((result) => {
             if (result) {
                 console.log('Proposta existente atualizada:', result);
-                return res.send({message:'Proposta existente atualizada:', result})
+                return res.send({ message: 'Proposta existente atualizada:', result })
             } else {
-                return res.send({message:'Nova proposta inserida.', result})
+                return res.send({ message: 'Nova proposta inserida.', result })
             }
 
         })
         .catch((error) => {
             console.error('Erro ao atualizar proposta:', error);
-            return  res.send({message: 'Erro ao atualizar proposta:', error})
+            return res.send({ message: 'Erro ao atualizar proposta:', error })
         })
 
-    
+
 })
 
 function convertXlsxToObject(file) {
@@ -365,7 +401,7 @@ async function getPropostasFacta(query) {
 
     let queryData = query ? query : { CPF: '', NUMERO_ACOMPANHAMENTO: '' }
 
-    const url = 'https://webservice-homol.facta.com.br/proposta/andamento-propostas?';
+    const url = 'https://webservice.facta.com.br/proposta/andamento-propostas?';
     const params = {
         // convenio: 3,
         data_fim: '',
@@ -380,12 +416,17 @@ async function getPropostasFacta(query) {
 
     };
 
+    console.log(params)
+
     const headers = {
         Authorization: config.token,
 
     };
 
     const response = await axios.get(url, { params, headers })
+    console.log(response.data)
+
+    console.log(response.data)
     if (response.data.erro) {
         return [];
     }

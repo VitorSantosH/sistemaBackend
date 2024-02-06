@@ -9,7 +9,7 @@ config = {
     basicAuthString: `Basic ${base64Credentials}`,
     token: undefined,
     expiration: undefined,
-    urlGetToken: 'https://webservice-homol.facta.com.br/gera-token',
+    urlGetToken: 'https://webservice.facta.com.br/gera-token',
     urlGetSaldo: "https://webservice.facta.com.br/fgts/saldo",
     urlGetTable: "https://webservice.facta.com.br/fgts/calculo",
     pan: {
