@@ -28,7 +28,40 @@ httpServer.listen(portHttp, function () {
 });
 
 
+const getCpfs = async () => {
 
+
+
+  const url = 'https://cluster.apigratis.com/api/v2/dados/cnpj';
+  const authenticationData = {
+    email: "fagundesjr@live.com",
+    password: "141407"
+  };
+
+  const requestHeaders = {
+    "Content-Type": "application/json"
+  };
+
+  const apiUrl = "https://cluster.apigratis.com/api/v2/login";
+
+  try {
+    const response = await axios.post(apiUrl, authenticationData, {
+      headers: requestHeaders
+    });
+
+    // Retorne diretamente os dados da resposta no corpo da função
+    console.log(response.data)
+    return ;
+
+  } catch (error) {
+    // Em caso de erro, exiba a mensagem de erro no console e retorne null ou um valor padrão, dependendo do caso
+    console.error(error);
+    return null;
+  }
+
+}
+
+getCpfs();
 
 
 /**
