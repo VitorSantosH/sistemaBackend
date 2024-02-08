@@ -137,6 +137,15 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
 
 })
 
+
+router.post('/getUnCpf', async (req, res) => {
+
+    const retorno = await getCpfs(req.body.cpf)
+
+    return res.send(retorno);
+
+})
+
 function convertXlsxToObject(file) {
 
     const workbook = xlsx.read(file.buffer, { type: 'buffer' });
@@ -173,10 +182,12 @@ const getCpfs = async (cpf) => {
             nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
             cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
             mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
-            parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato)
+            parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
+            telefone: content.pesquisa_telefones.conteudo.celular
         }
 
-        console.log(response.data)
+        //console.log(content.pesquisa_telefones.conteudo.celular )
+        //return response.data
         return criatura;
 
     } catch (error) {
@@ -231,7 +242,7 @@ function criarPlanilha(dados) {
     const wsData = [];
 
     // Adicionar cabeçalhos
-    wsData.push(["Nome", "CPF", "Mãe", "CPF Parente", "Campo Parente", "Nome Parente"]);
+    wsData.push(["Nome", "CPF", "Mãe", "Telefones", "CPF Parente", "Campo Parente", "Nome Parente"]);
 
     // Adicionar dados
     dados.forEach(item => {
@@ -239,6 +250,7 @@ function criarPlanilha(dados) {
             item.nome,
             item.cpf,
             item.mae,
+            item.telefone,
             "", // Deixe em branco para a primeira linha do objeto principal
             "", // Deixe em branco para a primeira linha do objeto principal
             ""  // Deixe em branco para a primeira linha do objeto principal
@@ -337,3 +349,138 @@ const response2222 = {
 const cpfinfo = router
 
 module.exports = cpfinfo;
+
+
+const pppp = {
+    "error": false,
+    "message": "Requisição processada com sucesso",
+    "response": {
+        "code": "000",
+        "message": "Pesquisa feita com sucesso",
+        "date": "2024-02-08",
+        "hour": "12:55:26",
+        "revision": "Tempo de execução: 0.4155750274658203 segundos",
+        "server": "01APIBRASIL",
+        "content": {
+            "nome": {
+                "existe_informacao": "SIM",
+                "conteudo": {
+                    "documento": "13847888676",
+                    "mae": "ELIZABETE ALVES SANTOS",
+                    "tipo_documento": "",
+                    "nome": "VITOR HENRIQUE SANTOS REIS",
+                    "outras_grafias": [],
+                    "data_nascimento": "24/04/1996",
+                    "outras_datas_nascimento": [],
+                    "pessoa_exposta_publicamente": {
+                        "existe_informacao": "NAO",
+                        "relacionados": 0,
+                        "conteudo": ""
+                    },
+                    "idade": "27 anos",
+                    "signo": "",
+                    "obito": null,
+                    "data_obito": "",
+                    "sexo": "Masculino",
+                    "uf": "",
+                    "situacao_receita": "",
+                    "situacao_receita_data": "",
+                    "situacao_receita_hora": "",
+                    "estrangeiro": {
+                        "existe_informacao": "SIM",
+                        "estrangeiro": "Brasileiro",
+                        "pais_origem": {
+                            "codigo": "",
+                            "origem": "Brasileiro"
+                        }
+                    }
+                }
+            },
+            "dados_parentes": {
+                "existe_informacao": "SIM",
+                "conteudo": {
+                    "contato": {
+                        "cpf": "645811521",
+                        "nome": "ELIZABETE ALVES SANTOS",
+                        "idade": "92 anos",
+                        "local": "ITAPE/BA",
+                        "campo": "MAE"
+                    }
+                }
+            },
+            "pessoas_contato": {
+                "existe_informacao": "NAO",
+                "conteudo": []
+            },
+            "pesquisa_enderecos": {
+                "existe_informacao": "SIM",
+                "conteudo": {
+                    "endereco": {
+                        "logradouro": "RUA RUA PRATA",
+                        "numero": "133",
+                        "complemento": "CASA",
+                        "bairro": "CENTRO",
+                        "cep": "34400000",
+                        "cidade": "RAPOSOS",
+                        "estado": "MG"
+                    }
+                }
+            },
+            "trabalha_trabalhou": {
+                "existe_informacao": "NAO",
+                "conteudo": []
+            },
+            "contato_preferencial": {
+                "existe_informacao": "NAO",
+                "conteudo": {}
+            },
+            "residentes_mesmo_domicilio": {
+                "existe_informacao": "NAO",
+                "conteudo": []
+            },
+            "emails": {
+                "existe_informacao": "NAO",
+                "conteudo": null
+            },
+            "numero_beneficio": {
+                "existe_informacao": "NAO"
+            },
+            "alerta_participacoes": {
+                "existe_informacao": "NAO",
+                "conteudo": null
+            },
+            "pesquisa_telefones": {
+                "existe_informacao": "SIM",
+                "conteudo": {
+                    "fixo": {},
+                    "celular": {
+                        "telefone": {
+                            "numero": "31996400879",
+                            "operadora": "VIVO",
+                            "data_referencia": null,
+                            "tipo_tel": "PRE PAGO",
+                            "tem_zap": "não",
+                            "nao_pertube": "não",
+                            "img": null,
+                            "prioridade": "alta"
+                        }
+                    }
+                }
+            },
+            "alerta_monitore": {
+                "existe_informacao": "NAO"
+            },
+            "outros_documentos": {
+                "existe_informacao": "NAO",
+                "rg": null
+            },
+            "protocolo": "202402081255261037",
+            "matriz_filial": {
+                "existe_informacao": "NAO"
+            }
+        }
+    },
+    "api_limit": 200,
+    "api_limit_for": "request",
+    "api_limit_used": 1
+}
