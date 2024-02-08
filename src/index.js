@@ -4,13 +4,15 @@ const morgan = require('morgan');
 const http = require('http');
 const app = express();
 const router = require('./router/index.js');
-
+const axios = require('axios')
+const path = require('path');
 
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('common'));
+app.use('/static', express.static('planilhas'));
 app.use('/home', express.static("dist"));
 app.use('/esteira-proposta', express.static("dist"));
 app.use('/', express.static("dist"));
@@ -24,44 +26,9 @@ const httpServer = http.createServer(app);
 
 
 httpServer.listen(portHttp, function () {
-    console.log("JSON Server is running on " + portHttp);
+  console.log("JSON Server is running on " + portHttp);
 });
 
-
-const getCpfs = async () => {
-
-
-
-  const url = 'https://cluster.apigratis.com/api/v2/dados/cnpj';
-  const authenticationData = {
-    email: "fagundesjr@live.com",
-    password: "141407"
-  };
-
-  const requestHeaders = {
-    "Content-Type": "application/json"
-  };
-
-  const apiUrl = "https://cluster.apigratis.com/api/v2/login";
-
-  try {
-    const response = await axios.post(apiUrl, authenticationData, {
-      headers: requestHeaders
-    });
-
-    // Retorne diretamente os dados da resposta no corpo da função
-    console.log(response.data)
-    return ;
-
-  } catch (error) {
-    // Em caso de erro, exiba a mensagem de erro no console e retorne null ou um valor padrão, dependendo do caso
-    console.error(error);
-    return null;
-  }
-
-}
-
-getCpfs();
 
 
 /**
