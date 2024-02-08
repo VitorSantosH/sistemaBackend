@@ -9,6 +9,8 @@ const { Readable } = require('stream');
 const moment = require('moment');
 const path = require('path');
 
+
+
 const tokenApi = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2NsdXN0ZXIuYXBpZ3JhdGlzLmNvbS9hcGkvdjIvbG9naW4iLCJpYXQiOjE3MDczNDYzNTksImV4cCI6MTczODg4MjM1OSwibmJmIjoxNzA3MzQ2MzU5LCJqdGkiOiJHclpIWkhObk43YU9JM0R3Iiwic3ViIjoiNzEzNyIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.c8_dzhTgyExYfeQhrX6jKNBBRTdRT_pqjN7Z_uj4Bn4'
 const geraTokenApiCpf = async () => {
 
@@ -48,7 +50,8 @@ const geraTokenApiCpf = async () => {
 
 // mongo 
 const conn = require('../config/mongoConfig.js');
-
+const cpfInfoSshema = require('../models/cpfModel.js');
+const cpfInfoBanco = conn.model('cpfInfo', cpfInfoSshema);
 
 
 // multer config
@@ -96,23 +99,23 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
         .then(() => {
 
             const response = criarPlanilha(InfoCpfs)
-           
+
             try {
-               
-            
-             /*  // Verificar se o arquivo existe
-                if (!fs.existsSync(response)) {
-                  return res.status(404).send('Planilha não encontrada.');
-                }
-            */
+
+
+                /*  // Verificar se o arquivo existe
+                   if (!fs.existsSync(response)) {
+                     return res.status(404).send('Planilha não encontrada.');
+                   }
+               */
                 // Retornar o URL da planilha
                 const urlDaPlanilha = `static/${response}`;
                 res.status(200).json({ url: urlDaPlanilha });
 
-              } catch (error) {
+            } catch (error) {
                 console.error('Erro ao obter o link da planilha:', error);
                 res.status(500).send('Erro interno do servidor ao obter o link da planilha.');
-              }
+            }
 
             /*
             // Configurar cabeçalhos para o download
@@ -133,8 +136,6 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
 
 
 })
-
-
 
 function convertXlsxToObject(file) {
 
@@ -207,6 +208,21 @@ function extrairDadosParentes(arrayDeObjetos) {
 
 function criarPlanilha(dados) {
 
+
+    try {
+        const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(dados) });
+
+        cpfInfoBancoNew.save()
+            .then(() => {
+                console.log('Objeto salvo com sucesso no banco de dados.');
+            })
+            .catch((erro) => {
+                console.error('Erro ao salvar o objeto:', erro);
+            });
+    } catch (error) {
+        console.log(error)
+    }
+
     // Criar uma nova planilha
     const workbook = XLSX.utils.book_new();
 
@@ -240,7 +256,7 @@ function criarPlanilha(dados) {
                     parente.nome || ""  // Garante que nome seja uma string, mesmo que seja undefined
                 ]);
             });
-        } 
+        }
     });
 
     // Criar worksheet
