@@ -229,16 +229,18 @@ function criarPlanilha(dados) {
         ]);
 
         // Adicionar dados dos parentes
-        item.parentes.forEach(parente => {
-            wsData.push([
-                "",
-                "",
-                "",
-                parente.cpf,
-                parente.campo,
-                parente.nome
-            ]);
-        });
+        if (item && item.parentes && Array.isArray(item.parentes)) {
+            item.parentes.forEach(parente => {
+                wsData.push([
+                    "",
+                    "",
+                    "",
+                    parente.cpf || "",  // Garante que cpf seja uma string, mesmo que seja undefined
+                    parente.campo || "",  // Garante que campo seja uma string, mesmo que seja undefined
+                    parente.nome || ""  // Garante que nome seja uma string, mesmo que seja undefined
+                ]);
+            });
+        } 
     });
 
     // Criar worksheet
