@@ -146,14 +146,6 @@ router.post('/getUnCpf', async (req, res) => {
 
 })
 
-function convertXlsxToObject(file) {
-
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const result = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    return result;
-}
 
 const getCpfs = async (cpf) => {
 
@@ -178,16 +170,28 @@ const getCpfs = async (cpf) => {
 
         // Retorne diretamente os dados da resposta no corpo da função
         const content = response.data.response.content
+
         const criatura = {
             nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
             cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
             mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
+            telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
+            telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
             parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
-            telefone: content.pesquisa_telefones.conteudo.celular
         }
 
         //console.log(content.pesquisa_telefones.conteudo.celular )
-        //return response.data
+        //return r1esponse.data
+
+        // console.log(response.data)
+
+        /* const obj = {
+             criatura: criatura,
+             data: response.data.response
+         }
+         */
+
+        console.log(response.data.response.content)
         return criatura;
 
     } catch (error) {
@@ -198,24 +202,41 @@ const getCpfs = async (cpf) => {
 
 }
 
-function extrairDadosParentes(arrayDeObjetos) {
+function convertXlsxToObject(file) {
+
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const result = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+    return result;
+}
+
+const extrairDadosParentes = (arrayDeObjetos) => {
+
     const dadosExtraidos = [];
 
     try {
-
-        arrayDeObjetos.forEach(objeto => {
-            const { cpf, campo, nome } = objeto;
+        if (Array.isArray(arrayDeObjetos)) {
+            arrayDeObjetos.forEach(objeto => {
+                const { cpf, campo, nome } = objeto;
+                if (cpf && campo && nome) {
+                    dadosExtraidos.push({ cpf, campo, nome });
+                }
+            });
+        } else if (typeof arrayDeObjetos === 'object' && arrayDeObjetos !== null) {
+            const { cpf, campo, nome } = arrayDeObjetos;
             if (cpf && campo && nome) {
                 dadosExtraidos.push({ cpf, campo, nome });
             }
-        });
-
-        return dadosExtraidos;
-
+        } else {
+            console.error("Tipo de dados inválido. Esperava-se um array ou um objeto.");
+        }
     } catch (error) {
-        return []
+        console.error("Ocorreu um erro:", error);
     }
-}
+
+    return dadosExtraidos;
+};
 
 function criarPlanilha(dados) {
 
@@ -241,35 +262,68 @@ function criarPlanilha(dados) {
     const wsName = "Dados";
     const wsData = [];
 
-    // Adicionar cabeçalhos
-    wsData.push(["Nome", "CPF", "Mãe", "Telefones", "CPF Parente", "Campo Parente", "Nome Parente"]);
+    wsData.push(["NOME", "CPF", "MÃE", "TELEFONE FIXO", "CELULAR + DDD", "CPF PARENTE", "GRAU DE PARENTESCO", "NOME PARENTE"]);
+    wsData['!cols'] = [
+        { wch: 80 },
+        { wch: 37.5 },
+        { wch: 20 },
+        { wch: 37.5 },
+        { wch: 37.5 },
+        { wch: 37.5 },
+        { wch: 20 },
+        { wch: 80 }
+    ];
 
     // Adicionar dados
     dados.forEach(item => {
+
+        const maeParente = item.parentes && item.parentes.find(parente => parente.campo === "MAE");
+
         wsData.push([
             item.nome,
             item.cpf,
             item.mae,
+            item.telefoneFixo,
             item.telefone,
-            "", // Deixe em branco para a primeira linha do objeto principal
-            "", // Deixe em branco para a primeira linha do objeto principal
-            ""  // Deixe em branco para a primeira linha do objeto principal
+            // (item.parentes && item.parentes.length > 0) ? item.parentes[0].cpf || "" : "",  // CPF do primeiro parente, se existir
+            // (item.parentes && item.parentes.length > 0) ? item.parentes[0].campo || "" : "",  // Campo do primeiro parente, se existir
+            // (item.parentes && item.parentes.length > 0) ? item.parentes[0].nome || "" : ""   // Nome do primeiro parente, se existir
+            (maeParente && maeParente.cpf) ? maeParente.cpf : "",  // CPF da mãe, se existir
+            (maeParente && maeParente.campo) ? maeParente.campo : "",  // Campo da mãe, se existir
+            (maeParente && maeParente.nome) ? maeParente.nome : ""   // Nome da mãe, se existir
         ]);
 
-        // Adicionar dados dos parentes
-        if (item && item.parentes && Array.isArray(item.parentes)) {
-            item.parentes.forEach(parente => {
+        // Adicionar dados dos outros parentes
+        if (!maeParente && item.parentes && item.parentes.length > 1) {
+            for (let i = 1; i < item.parentes.length; i++) {
                 wsData.push([
                     "",
                     "",
                     "",
-                    parente.cpf || "",  // Garante que cpf seja uma string, mesmo que seja undefined
-                    parente.campo || "",  // Garante que campo seja uma string, mesmo que seja undefined
-                    parente.nome || ""  // Garante que nome seja uma string, mesmo que seja undefined
+                    "",
+                    "",
+                    item.parentes[i].cpf || "",  // Garante que cpf seja uma string, mesmo que seja undefined
+                    item.parentes[i].campo || "",  // Garante que campo seja uma string, mesmo que seja undefined
+                    item.parentes[i].nome || ""  // Garante que nome seja uma string, mesmo que seja undefined
                 ]);
-            });
+            }
         }
+
     });
+
+    let n = 0;
+
+    // Usando um loop for para permitir a manipulação do índice durante a iteração
+    for (let i = 0; i < dados.length; i++) {
+        const indexLinhaEmBranco = wsData.findIndex(linha => linha.every(celula => celula === ""));
+    
+        // Remover a linha em branco se encontrada
+        if (indexLinhaEmBranco !== -1) {
+            wsData.splice(indexLinhaEmBranco, 1);
+        }
+    }
+   
+
 
     // Criar worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
