@@ -195,6 +195,21 @@ const getCpfs = async (cpf) => {
         return criatura;
 
     } catch (error) {
+
+        try {
+            const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(error) });
+    
+            cpfInfoBancoNew.save()
+                .then(() => {
+                    console.log('Objeto salvo com sucesso no banco de dados.');
+                })
+                .catch((erro) => {
+                    console.error('Erro ao salvar o objeto:', erro);
+                });
+        } catch (error) {
+            console.log(error)
+        }
+
         // Em caso de erro, exiba a mensagem de erro no console e retorne null ou um valor padrão, dependendo do caso
         console.error(error);
         return error;
