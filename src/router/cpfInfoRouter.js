@@ -76,6 +76,12 @@ router.post('/getcpf', async (req, res, next) => {
     return res.send({ token: tokenApi })
 })
 
+router.get('/getRequestInfos', async (req, res) => {
+    const retorno = await cpfInfoBanco.find({});
+
+    res.send(retorno)
+})
+
 router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res, next) => {
 
     const file = req.file;
@@ -137,7 +143,6 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
 
 })
 
-
 router.post('/getUnCpf', async (req, res) => {
 
     const retorno = await getCpfs(req.body.cpf)
@@ -198,7 +203,7 @@ const getCpfs = async (cpf) => {
 
         try {
             const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(error) });
-    
+
             cpfInfoBancoNew.save()
                 .then(() => {
                     console.log('Objeto salvo com sucesso no banco de dados.');
@@ -331,13 +336,13 @@ function criarPlanilha(dados) {
     // Usando um loop for para permitir a manipulação do índice durante a iteração
     for (let i = 0; i < dados.length; i++) {
         const indexLinhaEmBranco = wsData.findIndex(linha => linha.every(celula => celula === ""));
-    
+
         // Remover a linha em branco se encontrada
         if (indexLinhaEmBranco !== -1) {
             wsData.splice(indexLinhaEmBranco, 1);
         }
     }
-   
+
 
 
     // Criar worksheet
