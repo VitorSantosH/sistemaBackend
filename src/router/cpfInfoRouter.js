@@ -161,23 +161,22 @@ router.get('/getRequestInfos', async (req, res) => {
         n++
     })
 
-
     // Definir o caminho para o diretório desejado (./planilhas)
-    const outputDirectory = path.join(__dirname, '../../planilhas/respose.json');
+    const outputDirectory = path.join(__dirname, '../../planilhas');
+    const outputFile = path.join(outputDirectory, 'response.json');
 
+    // Verificar se o diretório existe, se não, criá-lo
     if (!fs.existsSync(outputDirectory)) {
-        // Se não existir, crie o diretório
         fs.mkdirSync(outputDirectory, { recursive: true });
     }
 
     // Convertendo o objeto para JSON
     const objetoJSON = JSON.stringify(filtro3, null, 2);
 
-    // Escrevendo o JSON em um arquivo no diretório especificado
-    fs.writeFileSync(outputDirectory, objetoJSON);
+    // Escrever o JSON em um arquivo no diretório especificado
+    fs.writeFileSync(outputFile, objetoJSON);
 
-
-    return res.send({outputDirectory})
+    return res.send({ outputDirectory, outputFile });
 
 
 })
