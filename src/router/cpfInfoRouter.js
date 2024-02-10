@@ -77,9 +77,35 @@ router.post('/getcpf', async (req, res, next) => {
 })
 
 router.get('/getRequestInfos', async (req, res) => {
+
     const retorno = await cpfInfoBanco.find({});
 
-    res.send(retorno)
+    const objFiltrado = retorno.map(obj => {
+
+        return JSON.parse(obj.objeto)
+    })
+
+    const arrayDeObjetos = objFiltrado.map(array => {
+
+        const objetoMergulhado = Object.assign(...array);
+
+        return objetoMergulhado;
+    });
+
+    
+    const ultimoFiltro = arrayDeObjetos.filter(obj => {
+
+        if(obj.status == 403) {
+            return true 
+        }
+
+        return false
+
+    })
+
+   
+
+    res.send(ultimoFiltro)
 })
 
 router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res, next) => {
