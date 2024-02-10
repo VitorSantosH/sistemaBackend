@@ -401,6 +401,73 @@ function criarPlanilha(dados) {
     return `output${date}.xlsx`;
 }
 
+function criarPlanilhaStatus(dados, status) {
+
+
+    // Criar uma nova planilha
+    const workbook = XLSX.utils.book_new();
+
+    // Criar uma nova folha na planilha
+    const wsName = "Dados";
+    const wsData = [];
+
+    wsData.push(["message", "stack", "data", "code", 'url']);
+
+
+    // Adicionar dados
+    dados.forEach(item => {
+
+        if (item.status == parseInt(status)) {
+            wsData.push([
+                item.message,
+                item.stack,
+                item.config.data,
+                item.code,
+                item.config.url,
+            ]);
+        }
+
+    });
+
+    let n = 0;
+
+    // Usando um loop for para permitir a manipulação do índice durante a iteração
+    for (let i = 0; i < dados.length; i++) {
+        const indexLinhaEmBranco = wsData.findIndex(linha => linha.every(celula => celula === ""));
+
+        // Remover a linha em branco se encontrada
+        if (indexLinhaEmBranco !== -1) {
+            wsData.splice(indexLinhaEmBranco, 1);
+        }
+    }
+
+
+
+    // Criar worksheet
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+
+    // Adicionar worksheet à planilha
+    XLSX.utils.book_append_sheet(workbook, ws, wsName);
+
+    // Definir o caminho para o diretório desejado (./planilhas)
+    const outputDirectory = path.join(__dirname, '../../planilhas');
+
+    if (!fs.existsSync(outputDirectory)) {
+        // Se não existir, crie o diretório
+        fs.mkdirSync(outputDirectory, { recursive: true });
+    }
+
+    // Definir o caminho completo do arquivo, incluindo o diretório
+    const date = Date.now();
+    const outputPath = path.join(outputDirectory, `output${date}.xlsx`);
+    XLSX.writeFile(workbook, outputPath);
+
+    console.log(`Planilha criada com sucesso em: ${outputPath}`);
+
+    return `output${date}.xlsx`;
+}
+
 
 
 
