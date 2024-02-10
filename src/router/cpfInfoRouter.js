@@ -149,11 +149,22 @@ router.get('/getRequestInfos', async (req, res) => {
       }
 
     }
+    
+    let n = 0;
    
+    filtro3.map(item => {
+
+        if(item.nome) {
+            return 
+        }
+
+        n++
+    })
+
 
    // const objFinal = criarPlanilhaGeral(respostaPositiva)
 
-    return res.send(filtro3)
+    return res.send(n)
 
 
 })
