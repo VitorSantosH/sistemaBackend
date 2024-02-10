@@ -97,6 +97,32 @@ router.get('/getRequestInfos', async (req, res) => {
 
     }
 
+    return res.send(objFiltrado)
+
+
+})
+
+router.get('/getRequest403-404', async (req, res) => {
+
+    const retorno = await cpfInfoBanco.find({});
+
+    const objs = retorno.map(obj => {
+
+        return JSON.parse(obj.objeto)
+    })
+
+    const objFiltrado = []
+
+    objFiltrado.push(...objs)
+
+    const filtro3 = [];
+
+    for (let index = 0; index < objFiltrado.length; index++) {
+
+        filtro3.push(...objFiltrado[index])
+
+    }
+
     const filtro4 = filtro3.filter(obj => {
 
         if (obj.status == 403 || obj.status == 404 ) {
