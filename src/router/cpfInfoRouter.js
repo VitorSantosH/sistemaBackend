@@ -531,9 +531,10 @@ function criarPlanilhaGeral(dados) {
         } catch (error) {
             console.log(error)
         }
+        console.log(parentes)
 
         const tel = item.telefone ? (item.telefone.telefone ?  item.telefone.telefone.numero : "") : ""
-
+        console.log(item.telefone)
         wsData.push([
             item.nome || '',
             item.cpf || '',
