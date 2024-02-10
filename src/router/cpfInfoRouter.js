@@ -97,7 +97,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     }
 
-    return res.send(objFiltrado)
+    return res.send(filtro3)
 
 
 })
