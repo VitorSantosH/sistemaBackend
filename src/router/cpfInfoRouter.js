@@ -95,13 +95,13 @@ router.get('/getRequestInfosSuccess', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-      try {
-        
-        filtro3.push(...objFiltrado[index])
+        try {
 
-      } catch (error) {
-         filtro3.push(objFiltrado[index])
-      }
+            filtro3.push(...objFiltrado[index])
+
+        } catch (error) {
+            filtro3.push(objFiltrado[index])
+        }
 
     }
     const respostaPositiva = filtro3.filter(obj => {
@@ -140,31 +140,44 @@ router.get('/getRequestInfos', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-      try {
-        
-        filtro3.push(...objFiltrado[index])
+        try {
 
-      } catch (error) {
-         filtro3.push(objFiltrado[index])
-      }
+            filtro3.push(...objFiltrado[index])
+
+        } catch (error) {
+            filtro3.push(objFiltrado[index])
+        }
 
     }
-    
+
     let n = 0;
-   
+
     filtro3.map(item => {
 
-        if(item.nome) {
-            return 
+        if (item.nome) {
+            return
         }
 
         n++
     })
 
 
-   // const objFinal = criarPlanilhaGeral(respostaPositiva)
+    // Definir o caminho para o diretório desejado (./planilhas)
+    const outputDirectory = path.join(__dirname, '../../planilhas/respose.json');
 
-    return res.send({"Numero de objetos vazios": n})
+    if (!fs.existsSync(outputDirectory)) {
+        // Se não existir, crie o diretório
+        fs.mkdirSync(outputDirectory, { recursive: true });
+    }
+
+    // Convertendo o objeto para JSON
+    const objetoJSON = JSON.stringify(filtro3, null, 2);
+
+    // Escrevendo o JSON em um arquivo no diretório especificado
+    fs.writeFileSync(outputDirectory, objetoJSON);
+
+
+    return res.send({outputDirectory})
 
 
 })
@@ -341,7 +354,7 @@ const getCpfs = async (cpf) => {
         } catch (error) {
 
             console.log(error)
-            
+
         }
 
 
