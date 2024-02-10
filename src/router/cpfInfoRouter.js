@@ -528,9 +528,9 @@ function criarPlanilhaGeral(dados) {
             item.cpf || '',
             item.telefone?.telefone?.numero || '',
             item.mae || '',
-            item.parente.map(parente => {
+            item.parente ?  item.parente.map(parente => {
                 return [parente.cpf, parente.campo, parente.nome]
-            })
+            }) : 0
 
         ]);
 
