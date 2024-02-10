@@ -80,7 +80,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const retorno = await cpfInfoBanco.find({});
 
-    const objFiltrado = retorno.map(obj => {
+  /*  const objFiltrado = retorno.map(obj => {
 
         return JSON.parse(obj.objeto)
     })
@@ -106,6 +106,10 @@ router.get('/getRequestInfos', async (req, res) => {
    
 
     res.send(ultimoFiltro)
+
+    */
+
+    res.send(retorno)
 })
 
 router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res, next) => {
