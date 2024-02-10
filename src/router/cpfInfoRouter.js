@@ -99,7 +99,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro4 = filtro3.filter(obj => {
 
-        if (obj.message == "Request failed with status code 403") {
+        if (obj.status == 403 || obj.status == 404 ) {
             return true
         }
 
@@ -109,7 +109,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const planilha1 = criarPlanilhaStatus(filtro4, 404)
     const planilha2 =  criarPlanilhaStatus(filtro4, 403)
-    
+
     return res.send({planilha1, planilha2})
 
 
