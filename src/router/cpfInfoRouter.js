@@ -107,8 +107,10 @@ router.get('/getRequestInfos', async (req, res) => {
 
     })
 
-
-    return res.send(filtro4)
+    const planilha1 = criarPlanilhaStatus(filtro4, 404)
+    const planilha2 =  criarPlanilhaStatus(filtro4, 403)
+    
+    return res.send({planilha1, planilha2})
 
 
 })
