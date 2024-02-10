@@ -107,7 +107,7 @@ router.get('/getRequestInfos', async (req, res) => {
     })
 
     const objFinal = criarPlanilhaGeral(respostaPositiva)
-    
+
     return res.send(objFinal)
 
 
@@ -524,21 +524,21 @@ function criarPlanilhaGeral(dados) {
 
 
         wsData.push([
-            item.nome,
-            item.cpf,
-            item.telefone.telefone.numero,
-            item.mae,
-            item.parente.map( parente => {
-                return [parente.cpf, parente.campo, parente.nome  ]
+            item.nome || '',
+            item.cpf || '',
+            item.telefone?.telefone?.numero || '',
+            item.mae || '',
+            item.parente.map(parente => {
+                return [parente.cpf, parente.campo, parente.nome]
             })
-            
+
         ]);
 
 
     });
 
 
-   
+
     // Criar worksheet
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
