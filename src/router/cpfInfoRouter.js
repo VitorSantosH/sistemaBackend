@@ -96,8 +96,19 @@ router.get('/getRequestInfos', async (req, res) => {
         filtro3.push(...objFiltrado[index])
 
     }
+    const respostaPositiva = filtro3.filter(obj => {
 
-    return res.send(filtro3)
+        if (obj.nome) {
+            return true
+        }
+
+        return false
+
+    })
+
+    const objFinal = criarPlanilhaGeral(respostaPositiva)
+    
+    return res.send(objFinal)
 
 
 })
@@ -125,7 +136,7 @@ router.get('/getRequest403-404', async (req, res) => {
 
     const filtro4 = filtro3.filter(obj => {
 
-        if (obj.status == 403 || obj.status == 404 ) {
+        if (obj.status == 403 || obj.status == 404) {
             return true
         }
 
@@ -134,9 +145,9 @@ router.get('/getRequest403-404', async (req, res) => {
     })
 
     const planilha1 = criarPlanilhaStatus(filtro4, 404)
-    const planilha2 =  criarPlanilhaStatus(filtro4, 403)
+    const planilha2 = criarPlanilhaStatus(filtro4, 403)
 
-    return res.send({planilha1, planilha2})
+    return res.send({ planilha1, planilha2 })
 
 
 })
@@ -495,6 +506,64 @@ function criarPlanilhaStatus(dados, status) {
 
     return `output${date}.xlsx`;
 }
+
+function criarPlanilhaGeral(dados) {
+
+    // Criar uma nova planilha
+    const workbook = XLSX.utils.book_new();
+
+    // Criar uma nova folha na planilha
+    const wsName = "Dados";
+    const wsData = [];
+
+    wsData.push(["NOME", "CPF", "TELEFONE CELULAR + DDD", 'NOME MÃE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE',]);
+
+
+    // Adicionar dados
+    dados.forEach(item => {
+
+
+        wsData.push([
+            item.nome,
+            item.cpf,
+            item.telefone.telefone.numero,
+            item.mae,
+            item.parente.map( parente => {
+                return [parente.cpf, parente.campo, parente.nome  ]
+            })
+            
+        ]);
+
+
+    });
+
+
+   
+    // Criar worksheet
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+
+    // Adicionar worksheet à planilha
+    XLSX.utils.book_append_sheet(workbook, ws, wsName);
+
+    // Definir o caminho para o diretório desejado (./planilhas)
+    const outputDirectory = path.join(__dirname, '../../planilhas');
+
+    if (!fs.existsSync(outputDirectory)) {
+        // Se não existir, crie o diretório
+        fs.mkdirSync(outputDirectory, { recursive: true });
+    }
+
+    // Definir o caminho completo do arquivo, incluindo o diretório
+    const date = Date.now();
+    const outputPath = path.join(outputDirectory, `output${date}.xlsx`);
+    XLSX.writeFile(workbook, outputPath);
+
+    console.log(`Planilha criada com sucesso em: ${outputPath}`);
+
+    return `output${date}.xlsx`;
+}
+
 
 
 
