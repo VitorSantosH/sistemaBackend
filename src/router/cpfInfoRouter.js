@@ -93,7 +93,15 @@ router.get('/getRequestInfos', async (req, res) => {
 
     for (let index = 0; index < objFiltrado.length; index++) {
 
+        console.log(objFiltrado[index])
+
+      try {
+        
         filtro3.push(...objFiltrado[index])
+
+      } catch (error) {
+         filtro3.push(objFiltrado[index])
+      }
 
     }
     const respostaPositiva = filtro3.filter(obj => {
@@ -174,7 +182,8 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
     Promise.all(InfoCpfs)
         .then(() => {
 
-            const response = criarPlanilha(InfoCpfs)
+            //const response = criarPlanilha(InfoCpfs)
+            const response = criarPlanilhaGeral(InfoCpfs)
 
             try {
 
@@ -185,6 +194,8 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
                    }
                */
                 // Retornar o URL da planilha
+
+
                 const urlDaPlanilha = `static/${response}`;
                 res.status(200).json({ url: urlDaPlanilha });
 
@@ -239,34 +250,52 @@ const getCpfs = async (cpf) => {
     const apiUrl = "https://cluster.apigratis.com/api/v2/dados/cpf";
 
     try {
+
+        // executar request
         const response = await axios.post(apiUrl, data, {
             headers: requestHeaders
         });
 
-        // Retorne diretamente os dados da resposta no corpo da função
-        const content = response.data.response.content
+        console.log(response)
+        //salvar response 
+        try {
+            const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(response.data) });
 
-        const criatura = {
-            nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
-            cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
-            mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
-            telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
-            telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-            parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
+            cpfInfoBancoNew.save()
+                .then(() => {
+                    console.log('Objeto salvo com sucesso no banco de dados.');
+                })
+                .catch((erro) => {
+                    console.error('Erro ao salvar o objeto:', erro);
+                });
+
+        } catch (error) {
+            console.log(error)
         }
 
-        //console.log(content.pesquisa_telefones.conteudo.celular )
-        //return r1esponse.data
+        // Retorne diretamente os dados da resposta no corpo da função
+        let content = {}
+        let criatura = {}
+        try {
 
-        // console.log(response.data)
+            content = response.data.response.content;
 
-        /* const obj = {
-             criatura: criatura,
-             data: response.data.response
-         }
-         */
+            criatura = {
+                nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
+                cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
+                mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
+                telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
+                telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
+            }
 
-        console.log(response.data)
+        } catch (error) {
+
+            console.log(error)
+            
+        }
+
+
         return criatura;
 
     } catch (error) {
@@ -329,7 +358,6 @@ const extrairDadosParentes = (arrayDeObjetos) => {
 };
 
 function criarPlanilha(dados) {
-
 
     try {
         const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(dados) });
@@ -523,24 +551,28 @@ function criarPlanilhaGeral(dados) {
     dados.forEach(item => {
 
         const parentes = []
+        // console.log(item)
         try {
-            parentes = item.parente.map(parente => {
+            parentes.push(...item.parentes.map(parente => {
                 return [parente.cpf, parente.campo, parente.nome]
-            })
+            }))
 
         } catch (error) {
             console.log(error)
         }
-        console.log(parentes)
 
-        const tel = item.telefone ? (item.telefone.telefone ?  item.telefone.telefone.numero : "") : ""
-        console.log(item.telefone)
+        let filtro2 = [];
+        parentes.map(arr => {
+            filtro2.push(...arr)
+        })
+
+
         wsData.push([
             item.nome || '',
             item.cpf || '',
-            tel,
+            item.telefone || '',
             item.mae || '',
-            ...parentes
+            ...filtro2
 
         ]);
 
