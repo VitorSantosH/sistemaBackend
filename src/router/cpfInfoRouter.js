@@ -80,36 +80,37 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const retorno = await cpfInfoBanco.find({});
 
-  /*  const objFiltrado = retorno.map(obj => {
+    const objs = retorno.map(obj => {
 
         return JSON.parse(obj.objeto)
     })
 
-    const arrayDeObjetos = objFiltrado.map(array => {
+    const objFiltrado = []
 
-        const objetoMergulhado = Object.assign(...array);
+    objFiltrado.push(...objs)
 
-        return objetoMergulhado;
-    });
+    const filtro3 = [];
 
-    
-    const ultimoFiltro = arrayDeObjetos.filter(obj => {
+    for (let index = 0; index < objFiltrado.length; index++) {
 
-        if(obj.status == 403) {
-            return true 
+        filtro3.push(...objFiltrado[index])
+
+    }
+
+    const filtro4 = filtro3.filter(obj => {
+
+        if (obj.message == "Request failed with status code 403") {
+            return true
         }
 
         return false
 
     })
 
-   
 
-    res.send(ultimoFiltro)
+    return res.send(filtro4)
 
-    */
 
-    res.send(retorno)
 })
 
 router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res, next) => {
