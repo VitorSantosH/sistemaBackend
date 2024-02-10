@@ -159,10 +159,10 @@ router.get('/getRequestInfos', async (req, res) => {
             n++
             
         }
-        
+
     })
 
-    return res.send(filtro3)
+    return res.send({objetos: filtro3, "objetos vazios": n});
 
 
 })
