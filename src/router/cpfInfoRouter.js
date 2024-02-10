@@ -164,7 +164,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
    // const objFinal = criarPlanilhaGeral(respostaPositiva)
 
-    return res.send(n)
+    return res.send({"Numero de objetos vazios": n})
 
 
 })
