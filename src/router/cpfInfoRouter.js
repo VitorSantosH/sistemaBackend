@@ -76,6 +76,51 @@ router.post('/getcpf', async (req, res, next) => {
     return res.send({ token: tokenApi })
 })
 
+router.get('/getRequestInfosSuccess', async (req, res) => {
+
+    const retorno = await cpfInfoBanco.find({});
+
+    const objs = retorno.map(obj => {
+
+        return JSON.parse(obj.objeto)
+    })
+
+    const objFiltrado = []
+
+    objFiltrado.push(...objs)
+
+    const filtro3 = [];
+
+    for (let index = 0; index < objFiltrado.length; index++) {
+
+        console.log(objFiltrado[index])
+
+        try {
+
+            filtro3.push(...objFiltrado[index])
+
+        } catch (error) {
+            filtro3.push(objFiltrado[index])
+        }
+
+    }
+    const respostaPositiva = filtro3.filter(obj => {
+
+        if (obj.nome) {
+            return true
+        }
+
+        return false
+
+    })
+
+    const objFinal = criarPlanilhaGeral(respostaPositiva)
+
+    return res.send(objFinal)
+
+
+})
+
 router.get('/getRequestInfos', async (req, res) => {
 
     const retorno = await cpfInfoBanco.find({});
@@ -95,18 +140,22 @@ router.get('/getRequestInfos', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-      try {
-        
-        filtro3.push(...objFiltrado[index])
+        try {
 
-      } catch (error) {
-         filtro3.push(objFiltrado[index])
-      }
+            filtro3.push(...objFiltrado[index])
+
+        } catch (error) {
+            filtro3.push(objFiltrado[index])
+        }
 
     }
-    const respostaPositiva = filtro3.filter(obj => {
 
-        if (obj.nome) {
+    let n = 0;
+
+    filtro3.filter(obj => {
+
+        if ((Object.keys(obj).length === 0)) {
+            n++
             return true
         }
 
@@ -114,12 +163,13 @@ router.get('/getRequestInfos', async (req, res) => {
 
     })
 
-    const objFinal = criarPlanilhaGeral(respostaPositiva)
+    // const objFinal = criarPlanilhaGeral(respostaPositiva)
 
-    return res.send(objFinal)
+    return res.send(n)
 
 
 })
+
 
 router.get('/getRequest403-404', async (req, res) => {
 
@@ -292,7 +342,7 @@ const getCpfs = async (cpf) => {
         } catch (error) {
 
             console.log(error)
-            
+
         }
 
 
