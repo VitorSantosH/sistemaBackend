@@ -95,13 +95,13 @@ router.get('/getRequestInfosSuccess', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-        try {
+      try {
+        
+        filtro3.push(...objFiltrado[index])
 
-            filtro3.push(...objFiltrado[index])
-
-        } catch (error) {
-            filtro3.push(objFiltrado[index])
-        }
+      } catch (error) {
+         filtro3.push(objFiltrado[index])
+      }
 
     }
     const respostaPositiva = filtro3.filter(obj => {
@@ -140,32 +140,20 @@ router.get('/getRequestInfos', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-        try {
+      try {
+        
+        filtro3.push(...objFiltrado[index])
 
-            filtro3.push(...objFiltrado[index])
-
-        } catch (error) {
-            filtro3.push(objFiltrado[index])
-        }
+      } catch (error) {
+         filtro3.push(objFiltrado[index])
+      }
 
     }
+   
 
-    let n = 0;
+   // const objFinal = criarPlanilhaGeral(respostaPositiva)
 
-    filtro3.filter(obj => {
-
-        if ((Object.keys(obj).length === 0)) {
-            n++
-            return true
-        }
-
-        return false
-
-    })
-
-    // const objFinal = criarPlanilhaGeral(respostaPositiva)
-
-    return res.send(n)
+    return res.send(filtro3)
 
 
 })
@@ -342,7 +330,7 @@ const getCpfs = async (cpf) => {
         } catch (error) {
 
             console.log(error)
-
+            
         }
 
 
