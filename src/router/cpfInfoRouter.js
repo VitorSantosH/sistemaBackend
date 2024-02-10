@@ -522,15 +522,24 @@ function criarPlanilhaGeral(dados) {
     // Adicionar dados
     dados.forEach(item => {
 
+        const parentes = []
+        try {
+            parentes = item.parente.map(parente => {
+                return [parente.cpf, parente.campo, parente.nome]
+            })
+
+        } catch (error) {
+            console.log(error)
+        }
+
+        const tel = item.telefone ? (item.telefone.telefone ?  item.telefone.telefone.numero : "") : ""
 
         wsData.push([
             item.nome || '',
             item.cpf || '',
-            item.telefone?.telefone?.numero || '',
+            tel,
             item.mae || '',
-            item.parente ?  item.parente.map(parente => {
-                return [parente.cpf, parente.campo, parente.nome]
-            }) : 0
+            ...parentes
 
         ]);
 
