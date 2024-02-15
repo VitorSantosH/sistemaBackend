@@ -12,41 +12,6 @@ const path = require('path');
 
 
 const tokenApi = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2NsdXN0ZXIuYXBpZ3JhdGlzLmNvbS9hcGkvdjIvbG9naW4iLCJpYXQiOjE3MDczNDYzNTksImV4cCI6MTczODg4MjM1OSwibmJmIjoxNzA3MzQ2MzU5LCJqdGkiOiJHclpIWkhObk43YU9JM0R3Iiwic3ViIjoiNzEzNyIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.c8_dzhTgyExYfeQhrX6jKNBBRTdRT_pqjN7Z_uj4Bn4'
-const geraTokenApiCpf = async () => {
-
-
-
-    const url = 'https://cluster.apigratis.com/api/v2/dados/cnpj';
-    const authenticationData = {
-        email: "fagundesjr@live.com",
-        password: "141407"
-    };
-
-    const requestHeaders = {
-        "Content-Type": "application/json"
-    };
-
-    const apiUrl = "https://cluster.apigratis.com/api/v2/login";
-
-    try {
-        const response = await axios.post(apiUrl, authenticationData, {
-            headers: requestHeaders
-        });
-
-        // Retorne diretamente os dados da resposta no corpo da função
-        console.log(response.data)
-        return;
-
-    } catch (error) {
-        // Em caso de erro, exiba a mensagem de erro no console e retorne null ou um valor padrão, dependendo do caso
-        console.error(error);
-        return null;
-    }
-
-}
-
-//geraTokenApiCpf();
-
 
 // mongo 
 const conn = require('../config/mongoConfig.js');
@@ -62,10 +27,6 @@ const multerConfig = require('../config/multer');
 //facta 
 
 // middleware para renovação do token
-
-
-
-
 router.post('/getcpf', async (req, res, next) => {
 
     console.log(req.body)
@@ -166,7 +127,6 @@ router.get('/getRequestInfos', async (req, res) => {
 
 
 })
-
 
 router.get('/getRequest403-404', async (req, res) => {
 
@@ -278,7 +238,6 @@ router.post('/getUnCpf', async (req, res) => {
     return res.send(retorno);
 
 })
-
 
 const getCpfs = async (cpf) => {
 
@@ -655,6 +614,10 @@ function criarPlanilhaGeral(dados) {
 
 
 
+const cpfinfo = router
+
+module.exports = cpfinfo;
+
 
 
 /**
@@ -701,13 +664,39 @@ const response2222 = {
         type: 'bearer'
     }
 }
+//geraTokenApiCpf();
+const geraTokenApiCpf = async () => {
 
 
 
-const cpfinfo = router
+    const url = 'https://cluster.apigratis.com/api/v2/dados/cnpj';
+    const authenticationData = {
+        email: "fagundesjr@live.com",
+        password: "141407"
+    };
 
-module.exports = cpfinfo;
+    const requestHeaders = {
+        "Content-Type": "application/json"
+    };
 
+    const apiUrl = "https://cluster.apigratis.com/api/v2/login";
+
+    try {
+        const response = await axios.post(apiUrl, authenticationData, {
+            headers: requestHeaders
+        });
+
+        // Retorne diretamente os dados da resposta no corpo da função
+        console.log(response.data)
+        return;
+
+    } catch (error) {
+        // Em caso de erro, exiba a mensagem de erro no console e retorne null ou um valor padrão, dependendo do caso
+        console.error(error);
+        return null;
+    }
+
+}
 
 const pppp = {
     "error": false,
