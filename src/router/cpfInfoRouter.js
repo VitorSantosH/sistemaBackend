@@ -137,8 +137,35 @@ router.get('/getRequestInfos', async (req, res) => {
 
     //  return res.send({ objetos: filtro3, "objetos vazios": n });
 
+    const filtro5 = filtro4.map(item => {
 
-    const planilha = criarPlanilhaGeral(filtro4);
+        let content = {}
+        let criatura = {}
+        try {
+
+            content = item.response.data.response.content;
+
+            criatura = {
+                nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
+                cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
+                mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
+                telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
+                telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
+            }
+
+            return criatura
+
+        } catch (error) {
+
+            console.log(error)
+
+        }
+
+        return false
+    })
+
+    const planilha = criarPlanilhaGeral(filtro5);
 
     return res.send(planilha)
 
@@ -425,19 +452,6 @@ const extrairDadosParentes = (arrayDeObjetos) => {
 
 function criarPlanilha(dados) {
 
-    try {
-        const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(dados) });
-
-        cpfInfoBancoNew.save()
-            .then(() => {
-                console.log('Objeto salvo com sucesso no banco de dados.');
-            })
-            .catch((erro) => {
-                console.error('Erro ao salvar o objeto:', erro);
-            });
-    } catch (error) {
-        console.log(error)
-    }
 
     // Criar uma nova planilha
     const workbook = XLSX.utils.book_new();
@@ -447,16 +461,7 @@ function criarPlanilha(dados) {
     const wsData = [];
 
     wsData.push(["NOME", "CPF", "MÃE", "TELEFONE FIXO", "CELULAR + DDD", "CPF PARENTE", "GRAU DE PARENTESCO", "NOME PARENTE"]);
-    wsData['!cols'] = [
-        { wch: 80 },
-        { wch: 37.5 },
-        { wch: 20 },
-        { wch: 37.5 },
-        { wch: 37.5 },
-        { wch: 37.5 },
-        { wch: 20 },
-        { wch: 80 }
-    ];
+
 
     // Adicionar dados
     dados.forEach(item => {
