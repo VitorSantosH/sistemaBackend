@@ -56,13 +56,13 @@ router.get('/getRequestInfosSuccess', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-      try {
-        
-        filtro3.push(...objFiltrado[index])
+        try {
 
-      } catch (error) {
-         filtro3.push(objFiltrado[index])
-      }
+            filtro3.push(...objFiltrado[index])
+
+        } catch (error) {
+            filtro3.push(objFiltrado[index])
+        }
 
     }
     const respostaPositiva = filtro3.filter(obj => {
@@ -101,29 +101,29 @@ router.get('/getRequestInfos', async (req, res) => {
 
         console.log(objFiltrado[index])
 
-      try {
-        
-        filtro3.push(...objFiltrado[index])
+        try {
 
-      } catch (error) {
-         filtro3.push(objFiltrado[index])
-      }
+            filtro3.push(...objFiltrado[index])
+
+        } catch (error) {
+            filtro3.push(objFiltrado[index])
+        }
 
     }
-    
+
     let n = 0;
-   
+
     filtro3.map(item => {
 
         if (Object.entries(item).length === 0) {
-            
+
             n++
-            
+
         }
 
     })
 
-    return res.send({objetos: filtro3, "objetos vazios": n});
+    return res.send({ objetos: filtro3, "objetos vazios": n });
 
 
 })
@@ -239,6 +239,50 @@ router.post('/getUnCpf', async (req, res) => {
 
 })
 
+router.get('/getAllPlanilhas', async (req, res) => {
+
+   
+    const pasta = path.join(__dirname, '../../planilhas');
+
+    
+
+    let planilhas = [];
+
+    fs.readdir(pasta, (err, files) => {
+        if (err) {
+            console.error('Erro ao ler o diretório:', err);
+            return;
+        }
+
+     
+
+        files.forEach(file => {
+            const filePath = path.join(pasta, file);
+
+            
+
+            // Verificar se é um arquivo XLSX
+            if (path.extname(file).toLowerCase() === '.xlsx') {
+                // Obter o tamanho do arquivo
+                const fileSize = fs.statSync(filePath).size;
+                
+                // Exibir nome e tamanho do arquivo
+                planilhas.push({
+                    name: file,
+                    size: fileSize
+                });
+            }
+
+
+        });
+
+        res.send(planilhas);
+    });
+
+   
+
+})
+
 const getCpfs = async (cpf) => {
 
     const data = {
@@ -298,7 +342,7 @@ const getCpfs = async (cpf) => {
         } catch (error) {
 
             console.log(error)
-            
+
         }
 
 
