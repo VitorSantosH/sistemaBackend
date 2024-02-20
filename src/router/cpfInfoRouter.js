@@ -123,8 +123,24 @@ router.get('/getRequestInfos', async (req, res) => {
 
     })
 
-    return res.send({ objetos: filtro3, "objetos vazios": n });
+    const filtro4 = filtro3.filter(item => {
 
+        if (!item.error) {
+            return item
+        }
+
+        return false
+
+    })
+
+    // mod 20-02
+
+    //  return res.send({ objetos: filtro3, "objetos vazios": n });
+
+
+    const planilha = criarPlanilhaGeral(filtro4);
+
+    return res.send(planilha)
 
 })
 
@@ -241,10 +257,10 @@ router.post('/getUnCpf', async (req, res) => {
 
 router.get('/getAllPlanilhas', async (req, res) => {
 
-   
+
     const pasta = path.join(__dirname, '../../planilhas');
 
-    
+
 
     let planilhas = [];
 
@@ -254,18 +270,18 @@ router.get('/getAllPlanilhas', async (req, res) => {
             return;
         }
 
-     
+
 
         files.forEach(file => {
             const filePath = path.join(pasta, file);
 
-            
+
 
             // Verificar se é um arquivo XLSX
             if (path.extname(file).toLowerCase() === '.xlsx') {
                 // Obter o tamanho do arquivo
                 const fileSize = fs.statSync(filePath).size;
-                
+
                 // Exibir nome e tamanho do arquivo
                 planilhas.push({
                     name: file,
@@ -279,7 +295,7 @@ router.get('/getAllPlanilhas', async (req, res) => {
         res.send(planilhas);
     });
 
-   
+
 
 })
 
