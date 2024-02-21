@@ -167,9 +167,9 @@ router.get('/getRequestInfos', async (req, res) => {
         
     })
 
-    const planilha = criarPlanilhaGeral(filtro5);
+    //const planilha = criarPlanilhaGeral(filtro5);
 
-    return res.send(planilha)
+    return res.send(filtro5)
 
 })
 
