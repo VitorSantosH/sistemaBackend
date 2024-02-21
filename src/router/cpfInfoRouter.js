@@ -139,7 +139,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro5 = filtro4.filter(item => {
 
-      /*  console.log(item)
+        console.log(item)
         let content = {}
         let criatura = {}
         try {
@@ -164,12 +164,12 @@ router.get('/getRequestInfos', async (req, res) => {
         }
 
         return false
-        */
+        
     })
 
-   // const planilha = criarPlanilhaGeral(filtro5);
+    const planilha = criarPlanilhaGeral(filtro5);
 
-    return res.send(filtro4)
+    return res.send(planilha)
 
 })
 
