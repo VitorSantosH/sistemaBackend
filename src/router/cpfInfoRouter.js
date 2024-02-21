@@ -137,7 +137,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     //  return res.send({ objetos: filtro3, "objetos vazios": n });
 
-    const filtro5 = filtro4.map(item => {
+    const filtro5 = filtro4.filter(item => {
 
         let content = {}
         let criatura = {}
@@ -616,6 +616,8 @@ function criarPlanilhaGeral(dados) {
     const wsData = [];
 
     wsData.push(["NOME", "CPF", "TELEFONE CELULAR + DDD", 'NOME MÃE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE',]);
+
+
 
 
     // Adicionar dados
