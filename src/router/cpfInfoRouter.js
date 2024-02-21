@@ -615,8 +615,7 @@ function criarPlanilhaGeral(dados) {
 
     wsData.push(["NOME", "CPF", "TELEFONE CELULAR + DDD", 'NOME MÃE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE',]);
 
-
-
+    console.log(dados)
 
     // Adicionar dados
     dados.forEach(item => {
