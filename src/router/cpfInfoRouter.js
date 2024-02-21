@@ -137,41 +137,35 @@ router.get('/getRequestInfos', async (req, res) => {
 
     //  return res.send({ objetos: filtro3, "objetos vazios": n });
     let countCod03 = 0;
-    const filtro5 = filtro4.filter(item => {
+    const filtro5 = filtro4
+        .filter(item => {
+            try {
+                const content = item.response.content;
 
-        
-        let content = {}
-        let criatura = {}
-        try {
+                const criatura = {
+                    nome: content.nome?.conteudo?.nome || "",
+                    cpf: content.nome?.conteudo?.documento || "",
+                    mae: content.nome?.conteudo?.mae || "",
+                    telefoneFixo: content.pesquisa_telefones?.conteudo?.fixo?.numero || "",
+                    telefone: content.pesquisa_telefones?.conteudo?.celular?.telefone?.numero || "",
+                    parentes: content.dados_parentes?.existe_informacao !== "NAO" ? extrairDadosParentes(content.dados_parentes?.conteudo?.contato) : [],
+                };
 
-            content = item.response.content;
+                // Verifica se pelo menos uma propriedade em criatura tem valor
+                const hasData = Object.values(criatura).some(value => value !== "");
 
-            criatura = {
-                nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
-                cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
-                mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
-                telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
-                telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                parentes: content.dados_parentes.existe_informacao != "NAO" ?  extrairDadosParentes(content.dados_parentes.conteudo.contato)  : [],
+                return hasData ? criatura : false;
+            } catch (error) {
+                countCod03++;
+                console.log(error);
+                return false;
             }
+        });
 
-            return criatura
-
-        } catch (error) {
-
-            countCod03++
-            
-            console.log(error)
-            return false
-        }
-
-      
-        
-    })
 
     const planilha = criarPlanilhaGeral(filtro5);
 
-    return res.send({planilha, filtro5, countCod03})
+    return res.send({ planilha, filtro5, countCod03 })
 
 })
 
@@ -635,7 +629,7 @@ function criarPlanilhaGeral(dados) {
             }))
 
         } catch (error) {
-         //   console.log(error)
+            //   console.log(error)
         }
 
         let filtro2 = [];
