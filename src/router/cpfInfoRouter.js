@@ -152,7 +152,7 @@ router.get('/getRequestInfos', async (req, res) => {
                 mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
                 telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
                 telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
+                parentes: content.dados_parentes.existe_informacao != "NAO" ?  extrairDadosParentes(content.dados_parentes.conteudo.contato)  : [],
             }
 
             return criatura
