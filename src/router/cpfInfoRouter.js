@@ -136,8 +136,8 @@ router.get('/getRequestInfos', async (req, res) => {
     // mod 20-02
 
     //  return res.send({ objetos: filtro3, "objetos vazios": n });
-
-    const filtro5 = filtro4.map(item => {
+    let countCod03 = 0;
+    const filtro5 = filtro4.filter(item => {
 
         
         let content = {}
@@ -158,8 +158,9 @@ router.get('/getRequestInfos', async (req, res) => {
             return criatura
 
         } catch (error) {
+
+            countCod03++
             
-            console.log(item)
             console.log(error)
             return false
         }
@@ -168,9 +169,9 @@ router.get('/getRequestInfos', async (req, res) => {
         
     })
 
-    //const planilha = criarPlanilhaGeral(filtro5);
+    const planilha = criarPlanilhaGeral(filtro5);
 
-    return res.send(filtro5)
+    return res.send({planilha, filtro5, countCod03})
 
 })
 
