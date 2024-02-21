@@ -139,6 +139,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro5 = filtro4.filter(item => {
 
+        console.log(item)
         let content = {}
         let criatura = {}
         try {
@@ -631,7 +632,7 @@ function criarPlanilhaGeral(dados) {
             }))
 
         } catch (error) {
-            console.log(error)
+         //   console.log(error)
         }
 
         let filtro2 = [];
