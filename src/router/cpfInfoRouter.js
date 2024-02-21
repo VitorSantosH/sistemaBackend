@@ -125,7 +125,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro4 = filtro3.filter(item => {
 
-        if (!item.error) {
+        if (item.error == false) {
             return item
         }
 
