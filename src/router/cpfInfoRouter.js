@@ -137,14 +137,14 @@ router.get('/getRequestInfos', async (req, res) => {
 
     //  return res.send({ objetos: filtro3, "objetos vazios": n });
 
-    const filtro5 = filtro4.filter(item => {
+    const filtro5 = filtro4.map(item => {
 
         console.log(item)
         let content = {}
         let criatura = {}
         try {
 
-            content = item.response.data.response.content;
+            content = item.response.content;
 
             criatura = {
                 nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
@@ -160,10 +160,10 @@ router.get('/getRequestInfos', async (req, res) => {
         } catch (error) {
 
             console.log(error)
-
+            return false
         }
 
-        return false
+      
         
     })
 
