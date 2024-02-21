@@ -139,7 +139,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro5 = filtro4.map(item => {
 
-        console.log(item)
+        
         let content = {}
         let criatura = {}
         try {
@@ -158,7 +158,8 @@ router.get('/getRequestInfos', async (req, res) => {
             return criatura
 
         } catch (error) {
-
+            
+            console.log(item)
             console.log(error)
             return false
         }
