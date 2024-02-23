@@ -137,7 +137,9 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro5 = filtro4
         .filter((item, index) => {
-
+            if(index < 2) {
+                console.log(item)
+            }
             const criatura = {
                 nome: item.response.content.nome.conteudo.nome || "",
                 cpf: item.response.content.nome.conteudo.documento || "",
@@ -604,7 +606,7 @@ function criarPlanilhaGeral(dados) {
 
     wsData.push(["NOME", "CPF", "TELEFONE CELULAR + DDD", 'NOME MÃE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE',]);
 
-    console.log(dados)
+    
 
     // Adicionar dados
     dados.forEach((item, index) => {
@@ -622,7 +624,7 @@ function criarPlanilhaGeral(dados) {
 
         } catch (error) {
             if (index < 3) {
-                console.log(error)
+             //   console.log(error)
             }
         }
 
