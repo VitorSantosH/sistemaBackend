@@ -153,7 +153,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
                 wsData.push(criatura)
             } catch (error) {
-
+               console.log(error)
             }
 
          
