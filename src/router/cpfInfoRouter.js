@@ -143,10 +143,10 @@ router.get('/getRequestInfos', async (req, res) => {
             const criatura = {}
             try {
                 criatura = {
-                    nome: item.response.content.nome.conteudo.nome || "",
-                    cpf: item.response.content.nome.conteudo.documento || "",
-                    mae: item.response.content.nome.conteudo.mae || "",
-                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero || "",
+                    nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome  : "",
+                    cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
+                    mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
+                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
                     telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
                     parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
                 };
