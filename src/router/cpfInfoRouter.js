@@ -624,9 +624,15 @@ function criarPlanilhaGeral(dados) {
         const parentes = []
         // console.log(item)
         try {
-            parentes.push(...item.parentes.map(parente => {
-                return [parente.cpf, parente.campo, parente.nome]
-            }))
+
+            if(typeof item.parente == Array) {
+                parentes.push(...item.parentes.map(parente => {
+                    return [parente.cpf, parente.campo, parente.nome]
+                }))
+            } else {
+                parentes.push(...[item.parentes.cpf , item.parentes.campo, item.parentes.nome])
+            }
+          
 
         } catch (error) {
               if(index < 3) {
