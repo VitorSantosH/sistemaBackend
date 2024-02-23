@@ -133,39 +133,28 @@ router.get('/getRequestInfos', async (req, res) => {
         return false
 
     })
+    const wsData = [];
 
-    let countCod03 = 0;
     const filtro5 = filtro4
         .filter((item, index) => {
 
-            if(index < 2) {
-                console.log(item)
-            }
-            try {
+            const criatura = {
+                nome: item.response.content.nome.conteudo.nome || "",
+                cpf: item.response.content.nome.conteudo.documento || "",
+                mae: item.response.content.nome.conteudo.mae || "",
+                telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero || "",
+                telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
+            };
 
-                const criatura = {
-                    nome: item.response.content.nome.conteudo.nome || "",
-                    cpf: item.response.content.nome.conteudo.documento || "",
-                    mae: item.response.content.nome.conteudo.mae || "",
-                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero || "",
-                    telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                    parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
-                }
+            wsData.push(criatura)
 
-
-                return criatura;
-
-            } catch (error) {
-                countCod03++;
-                console.log(error);
-                return false;
-            }
         });
 
 
     const planilha = criarPlanilhaGeral(filtro5);
 
-    return res.send({ planilha, filtro5, countCod03 })
+    return res.send({ planilha, filtro5, wsData })
 
 })
 
