@@ -125,7 +125,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro4 = filtro3.filter(item => {
 
-        if (item.error == false) {
+        if (item.error == false && item.response.date == "2024-02-20") {
             return item
         }
 
