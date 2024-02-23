@@ -128,6 +128,7 @@ router.get('/getRequestInfos', async (req, res) => {
         if (item.error == false && item.response.date == "2024-02-20") {
             return item
         }
+        
 
         return false
 
@@ -618,7 +619,7 @@ function criarPlanilhaGeral(dados) {
     console.log(dados)
 
     // Adicionar dados
-    dados.forEach(item => {
+    dados.forEach((item, index) => {
 
         const parentes = []
         // console.log(item)
@@ -628,7 +629,9 @@ function criarPlanilhaGeral(dados) {
             }))
 
         } catch (error) {
-            //   console.log(error)
+              if(index < 3) {
+                console.log(error)
+              }
         }
 
         let filtro2 = [];
