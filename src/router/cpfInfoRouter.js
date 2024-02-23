@@ -135,7 +135,7 @@ router.get('/getRequestInfos', async (req, res) => {
     })
     const wsData = [];
 
-    const filtro5 = filtro4
+    filtro4
         .filter((item, index) => {
             if (index < 2) {
                 console.log(item)
@@ -143,7 +143,7 @@ router.get('/getRequestInfos', async (req, res) => {
             var criatura = {}
             try {
                 criatura = {
-                    nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome  : "",
+                    nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
                     cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
                     mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
                     telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
@@ -153,17 +153,17 @@ router.get('/getRequestInfos', async (req, res) => {
 
                 wsData.push(criatura)
             } catch (error) {
-               console.log(error)
+                console.log(error)
             }
 
-         
+
 
         });
 
 
-    const planilha = criarPlanilhaGeral(filtro5);
+    const planilha = criarPlanilhaGeral(wsData);
 
-    return res.send({ planilha, filtro5, wsData })
+    return res.send({ planilha, wsData })
 
 })
 
