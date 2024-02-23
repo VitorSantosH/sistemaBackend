@@ -140,7 +140,7 @@ router.get('/getRequestInfos', async (req, res) => {
             if (index < 2) {
                 console.log(item)
             }
-            const criatura = {}
+            var criatura = {}
             try {
                 criatura = {
                     nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome  : "",
