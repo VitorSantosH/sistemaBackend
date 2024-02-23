@@ -137,17 +137,22 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const filtro5 = filtro4
         .filter((item, index) => {
-            if(index < 2) {
+            if (index < 2) {
                 console.log(item)
             }
-            const criatura = {
-                nome: item.response.content.nome.conteudo.nome || "",
-                cpf: item.response.content.nome.conteudo.documento || "",
-                mae: item.response.content.nome.conteudo.mae || "",
-                telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero || "",
-                telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
-            };
+            const criatura = {}
+            try {
+                criatura = {
+                    nome: item.response.content.nome.conteudo.nome || "",
+                    cpf: item.response.content.nome.conteudo.documento || "",
+                    mae: item.response.content.nome.conteudo.mae || "",
+                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero || "",
+                    telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                    parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
+                };
+            } catch (error) {
+
+            }
 
             wsData.push(criatura)
 
@@ -606,7 +611,7 @@ function criarPlanilhaGeral(dados) {
 
     wsData.push(["NOME", "CPF", "TELEFONE CELULAR + DDD", 'NOME MÃE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE',]);
 
-    
+
 
     // Adicionar dados
     dados.forEach((item, index) => {
@@ -624,7 +629,7 @@ function criarPlanilhaGeral(dados) {
 
         } catch (error) {
             if (index < 3) {
-             //   console.log(error)
+                //   console.log(error)
             }
         }
 
