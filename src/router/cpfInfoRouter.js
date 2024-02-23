@@ -148,7 +148,7 @@ router.get('/getRequestInfos', async (req, res) => {
                     mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
                     telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
                     telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                    parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
+                    parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
                 };
 
                 wsData.push(criatura)
@@ -422,7 +422,7 @@ function convertXlsxToObject(file) {
 const extrairDadosParentes = (arrayDeObjetos) => {
 
     const dadosExtraidos = [];
-
+    console.log(arrayDeObjetos)
     try {
         if (Array.isArray(arrayDeObjetos)) {
             arrayDeObjetos.forEach(objeto => {
@@ -622,17 +622,14 @@ function criarPlanilhaGeral(dados) {
         // console.log(item)
         try {
 
-            if (typeof item.parente == Array) {
-                parentes.push(...item.parentes.map(parente => {
-                    return [parente.cpf, parente.campo, parente.nome]
-                }))
-            }
-
+            parentes.push(...item.parentes.map(parente => {
+                return [parente.cpf, parente.campo, parente.nome]
+            }))
 
         } catch (error) {
-            if (index < 3) {
-                //   console.log(error)
-            }
+
+            console.log(error)
+
         }
 
         let filtro2 = [];
