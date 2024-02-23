@@ -128,34 +128,33 @@ router.get('/getRequestInfos', async (req, res) => {
         if (item.error == false && item.response.date == "2024-02-20") {
             return item
         }
-        
+
 
         return false
 
     })
 
-    // mod 20-02
-
-    //  return res.send({ objetos: filtro3, "objetos vazios": n });
     let countCod03 = 0;
     const filtro5 = filtro4
-        .filter(item => {
+        .filter((item, index) => {
+
+            if(index < 2) {
+                console.log(item)
+            }
             try {
-                const content = item.response.content;
 
                 const criatura = {
-                    nome: content.nome?.conteudo?.nome || "",
-                    cpf: content.nome?.conteudo?.documento || "",
-                    mae: content.nome?.conteudo?.mae || "",
-                    telefoneFixo: content.pesquisa_telefones?.conteudo?.fixo?.numero || "",
-                    telefone: content.pesquisa_telefones?.conteudo?.celular?.telefone?.numero || "",
-                    parentes: content.dados_parentes?.existe_informacao !== "NAO" ? extrairDadosParentes(content.dados_parentes?.conteudo?.contato) : [],
-                };
+                    nome: item.response.content.nome.conteudo.nome || "",
+                    cpf: item.response.content.nome.conteudo.documento || "",
+                    mae: item.response.content.nome.conteudo.mae || "",
+                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero || "",
+                    telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                    parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
+                }
 
-                // Verifica se pelo menos uma propriedade em criatura tem valor
-                const hasData = Object.values(criatura).some(value => value !== "");
 
-                return hasData ? criatura : false;
+                return criatura;
+
             } catch (error) {
                 countCod03++;
                 console.log(error);
@@ -348,7 +347,7 @@ const getCpfs = async (cpf) => {
             headers: requestHeaders
         });
 
-        console.log(response)
+
         //salvar response 
         try {
             const cpfInfoBancoNew = new cpfInfoBanco({ objeto: JSON.stringify(response.data) });
@@ -625,19 +624,17 @@ function criarPlanilhaGeral(dados) {
         // console.log(item)
         try {
 
-            if(typeof item.parente == Array) {
+            if (typeof item.parente == Array) {
                 parentes.push(...item.parentes.map(parente => {
                     return [parente.cpf, parente.campo, parente.nome]
                 }))
-            } else {
-                parentes.push(...[item.parentes.cpf , item.parentes.campo, item.parentes.nome])
             }
-          
+
 
         } catch (error) {
-              if(index < 3) {
+            if (index < 3) {
                 console.log(error)
-              }
+            }
         }
 
         let filtro2 = [];
