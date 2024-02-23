@@ -150,11 +150,13 @@ router.get('/getRequestInfos', async (req, res) => {
                     telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
                     parentes: item.response.content.dados_parentes.existe_informacao !== "NAO" ? extrairDadosParentes(item.response.content.dados_parentes?.conteudo?.contato) : [],
                 };
+
+                wsData.push(criatura)
             } catch (error) {
 
             }
 
-            wsData.push(criatura)
+         
 
         });
 
