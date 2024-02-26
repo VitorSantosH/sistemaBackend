@@ -215,14 +215,16 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
     const InfoCpfs = [];
 
     for (const key in retorno) {
+
         if (Object.hasOwnProperty.call(retorno, key)) {
-
-            // console.log(retorno[key].cpf)
-            // InfoCpfs.push(getCpfs(retorno[key].cpf))
-
+            printDate();
             const cpfInfo = await getCpfs(retorno[key].cpf);
             InfoCpfs.push(cpfInfo);
+
+            await sleep(120);
+
         }
+
     }
 
     Promise.all(InfoCpfs)
@@ -233,15 +235,6 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
 
             try {
 
-
-                /*  // Verificar se o arquivo existe
-                   if (!fs.existsSync(response)) {
-                     return res.status(404).send('Planilha não encontrada.');
-                   }
-               */
-                // Retornar o URL da planilha
-
-
                 const urlDaPlanilha = `static/${response}`;
                 res.status(200).json({ url: urlDaPlanilha });
 
@@ -250,15 +243,6 @@ router.post('/upload-cpfs', multer(multerConfig).single('file'), async (req, res
                 res.status(500).send('Erro interno do servidor ao obter o link da planilha.');
             }
 
-            /*
-            // Configurar cabeçalhos para o download
-            res.setHeader('Content-disposition', 'attachment; filename=output.xlsx');
-            res.setHeader('Content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-
-            // Enviar o arquivo como resposta
-            const filestream = fs.createReadStream(response);
-            filestream.pipe(res);
-           */
         })
         .catch((error) => {
 
@@ -677,6 +661,32 @@ function criarPlanilhaGeral(dados) {
     return `output${date}.xlsx`;
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function printDate() {
+    try {
+        const agora = new Date();
+
+        // Obtenha os componentes da data e hora
+        const dia = agora.getDate();
+        const mes = agora.getMonth() + 1;
+        const ano = agora.getFullYear();
+        const hora = agora.getHours();
+        const minuto = agora.getMinutes();
+        const segundo = agora.getSeconds();
+        const milissegundo = agora.getMilliseconds();
+
+        // Crie uma string com os componentes formatados
+        const dataHoraString = `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano} - ${hora}:${minuto}:${segundo}:${milissegundo}`;
+
+        // Exiba o resultado
+        return console.log(dataHoraString);
+    } catch (error) {
+        return console.log(error)
+    }
+}
 
 
 const cpfinfo = router
