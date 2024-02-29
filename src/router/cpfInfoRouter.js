@@ -111,19 +111,8 @@ router.get('/getRequestInfos', async (req, res) => {
 
     }
 
-    let n = 0;
 
-    filtro3.map(item => {
-
-        if (Object.entries(item).length === 0) {
-
-            n++
-
-        }
-
-    })
-
-    const filtro4 = filtro3.filter(item => {
+ /*   const filtro4 = filtro3.filter(item => {
 
         if (item.error == false && item.response.date == "2024-02-20") {
             return item
@@ -133,9 +122,10 @@ router.get('/getRequestInfos', async (req, res) => {
         return false
 
     })
+    */
     const wsData = [];
 
-    filtro4
+  /*  filtro4
         .filter((item, index) => {
             if (index < 2) {
                 console.log(item)
@@ -159,11 +149,11 @@ router.get('/getRequestInfos', async (req, res) => {
 
 
         });
-
+*/
 
     const planilha = criarPlanilhaGeral(wsData);
 
-    return res.send({ planilha, wsData })
+    return res.send({ filtro4 })
 
 })
 
