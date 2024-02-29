@@ -153,7 +153,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     const planilha = criarPlanilhaGeral(wsData);
 
-    return res.send({ filtro4 })
+    return res.send({ filtro3 })
 
 })
 
