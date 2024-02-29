@@ -112,9 +112,9 @@ router.get('/getRequestInfos', async (req, res) => {
     }
 
 
- /*   const filtro4 = filtro3.filter(item => {
+    const itensCod3 = filtro3.filter(item => {
 
-        if (item.error == false && item.response.date == "2024-02-20") {
+        if (item.error == false && item.response.date == "2024-02-29" && item.response.code == "003") {
             return item
         }
 
@@ -122,38 +122,38 @@ router.get('/getRequestInfos', async (req, res) => {
         return false
 
     })
-    */
+
     const wsData = [];
 
-  /*  filtro4
-        .filter((item, index) => {
-            if (index < 2) {
-                console.log(item)
-            }
-            var criatura = {}
-            try {
-                criatura = {
-                    nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
-                    cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
-                    mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
-                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
-                    telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                    parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
-                };
+    /*  filtro4
+          .filter((item, index) => {
+              if (index < 2) {
+                  console.log(item)
+              }
+              var criatura = {}
+              try {
+                  criatura = {
+                      nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
+                      cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
+                      mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
+                      telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
+                      telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                      parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
+                  };
+  
+                  wsData.push(criatura)
+              } catch (error) {
+                  console.log(error)
+              }
+  
+  
+  
+          });
+  */
 
-                wsData.push(criatura)
-            } catch (error) {
-                console.log(error)
-            }
+    //const planilha = criarPlanilhaGeral(wsData);
 
-
-
-        });
-*/
-
-    const planilha = criarPlanilhaGeral(wsData);
-
-    return res.send({ filtro3 })
+    return res.send({ itensCod3, filtro3 })
 
 })
 
