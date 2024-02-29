@@ -123,6 +123,16 @@ router.get('/getRequestInfos', async (req, res) => {
 
     })
 
+    const filtro4 = filtro3.filter(item => {
+
+        if (item.error == false && item.response.date == "2024-02-29" ) {
+            return item
+        }
+
+
+        return false
+
+    })
     const wsData = [];
 
     /*  filtro4
@@ -153,7 +163,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     //const planilha = criarPlanilhaGeral(wsData);
 
-    return res.send({ itensCod3, filtro3 })
+    return res.send({ itensCod3, filtro3, filtro4 })
 
 })
 
