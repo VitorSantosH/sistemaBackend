@@ -320,7 +320,7 @@ const getCpfs = async (cpf) => {
 
     };
 
-    const apiUrl = "https://cluster.apigratis.com/api/v2/dados/cpf";
+    const apiUrl = "https://gateway.apibrasil.io/api/v2/dados/cpf/credits"; //"https://cluster.apigratis.com/api/v2/dados/cpf";
 
     try {
 
