@@ -315,7 +315,7 @@ const getCpfs = async (cpf) => {
     const requestHeaders = {
 
         "Content-Type": "application/json",
-        "DeviceToken": "258b30eb-5045-4492-b112-801727444840",
+       // "DeviceToken": "258b30eb-5045-4492-b112-801727444840",
         "Authorization": `Bearer  ${tokenApi}`
 
     };
