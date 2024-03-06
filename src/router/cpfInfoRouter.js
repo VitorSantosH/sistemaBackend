@@ -111,59 +111,74 @@ router.get('/getRequestInfos', async (req, res) => {
 
     }
 
-    let n = 0;
 
-    filtro3.map(item => {
+    /*  const itensCod3 = filtro3.filter(item => {
+  
+          if (item.error == false && item.response.date == "2024-02-29" && item.response.code == "003") {
+              return item
+          }
+  
+  
+          return false
+  
+      })
+  */
 
-        if (Object.entries(item).length === 0) {
+    const code0 = filtro3.filter((item, index) => {
 
-            n++
+        //2742 começa saldo 
 
-        }
-
-    })
-
-    const filtro4 = filtro3.filter(item => {
-
-        if (item.error == false && item.response.date == "2024-02-20") {
+        if (item.error == false && index > 2742 && item.response.code == "000") {
             return item
         }
 
+        return false
+
+    });
+
+    const codeN0 = filtro3.filter((item, index) => {
+
+        //2742 começa saldo 
+
+        if (item.error == false && index > 2742 && item.response.code != "000") {
+            return item
+        }
 
         return false
 
-    })
+    });
+
     const wsData = [];
 
-    filtro4
-        .filter((item, index) => {
-            if (index < 2) {
-                console.log(item)
-            }
-            var criatura = {}
-            try {
-                criatura = {
-                    nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
-                    cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
-                    mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
-                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
-                    telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                    parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
-                };
+    /*  filtro4
+          .filter((item, index) => {
+              if (index < 2) {
+                  console.log(item)
+              }
+              var criatura = {}
+              try {
+                  criatura = {
+                      nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
+                      cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
+                      mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
+                      telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
+                      telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                      parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
+                  };
+  
+                  wsData.push(criatura)
+              } catch (error) {
+                  console.log(error)
+              }
+  
+  
+  
+          });
+  */
 
-                wsData.push(criatura)
-            } catch (error) {
-                console.log(error)
-            }
+    //const planilha = criarPlanilhaGeral(wsData);
 
-
-
-        });
-
-
-    const planilha = criarPlanilhaGeral(wsData);
-
-    return res.send({ planilha, wsData })
+    return res.send({  filtro3, code0, codeN0 })
 
 })
 
@@ -315,12 +330,12 @@ const getCpfs = async (cpf) => {
     const requestHeaders = {
 
         "Content-Type": "application/json",
-        "DeviceToken": "490d06f5-0d5f-4cc9-b7df-83bbeeb432a1",
+        // "DeviceToken": "258b30eb-5045-4492-b112-801727444840",
         "Authorization": `Bearer  ${tokenApi}`
 
     };
 
-    const apiUrl = "https://cluster.apigratis.com/api/v2/dados/cpf";
+    const apiUrl = "https://gateway.apibrasil.io/api/v2/dados/cpf/credits"; //"https://cluster.apigratis.com/api/v2/dados/cpf";
 
     try {
 
