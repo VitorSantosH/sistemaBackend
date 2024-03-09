@@ -112,18 +112,6 @@ router.get('/getRequestInfos', async (req, res) => {
     }
 
 
-    /*  const itensCod3 = filtro3.filter(item => {
-  
-          if (item.error == false && item.response.date == "2024-02-29" && item.response.code == "003") {
-              return item
-          }
-  
-  
-          return false
-  
-      })
-  */
-
     const code0 = filtro3.filter((item, index) => {
 
         //2742 começa saldo 
@@ -178,7 +166,7 @@ router.get('/getRequestInfos', async (req, res) => {
 
     //const planilha = criarPlanilhaGeral(wsData);
 
-    return res.send({  filtro3, code0, codeN0 })
+    return res.send({ filtro3, code0, codeN0 })
 
 })
 
@@ -321,6 +309,43 @@ router.get('/getAllPlanilhas', async (req, res) => {
 
 })
 
+router.get('/getalldatas', async (req, res) => {
+
+    const response = await axios.get("https://siscorban.com/cpfinfo/getRequestInfos")
+
+    var filtred = []
+    response.data.code0
+        .filter((item, index) => {
+            if (index < 2) {
+                console.log(item)
+            }
+            var criatura = {}
+            try {
+                criatura = {
+                    nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
+                    cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
+                    mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
+                    telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
+                    telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                    parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
+                };
+
+                filtred.push(criatura)
+            } catch (error) {
+                console.log(error)
+            }
+
+        });
+
+   // console.log(filtred);
+
+   
+    const ret = criarPlanilhaGeral(filtred);
+
+    return res.send(ret);
+
+})
+
 const getCpfs = async (cpf) => {
 
     const data = {
@@ -369,13 +394,13 @@ const getCpfs = async (cpf) => {
             content = response.data.response.content;
 
             criatura = {
-                nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
-                cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
-                mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
-                telefoneFixo: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.fixo && content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
-                telefone: content.pesquisa_telefones && content.pesquisa_telefones.conteudo && content.pesquisa_telefones.conteudo.celular && content.pesquisa_telefones.conteudo.celular.telefone && content.pesquisa_telefones.conteudo.celular.telefone.numero ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                parentes: extrairDadosParentes(content.dados_parentes.conteudo.contato),
-            }
+                nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
+                cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
+                mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
+                telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
+                telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
+            };
 
         } catch (error) {
 
@@ -611,8 +636,6 @@ function criarPlanilhaGeral(dados) {
     const wsData = [];
 
     wsData.push(["NOME", "CPF", "TELEFONE CELULAR + DDD", 'NOME MÃE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE', "CPF PARENTE", "PARENTESCO", 'NOME PARENTE',]);
-
-
 
     // Adicionar dados
     dados.forEach((item, index) => {
