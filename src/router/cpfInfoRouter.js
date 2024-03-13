@@ -316,8 +316,8 @@ router.get('/getalldatas', async (req, res) => {
     var filtred = []
     response.data.code0
         .filter((item, index) => {
-            if (index < 2) {
-                console.log(item)
+            if (index < 4170) {
+                return 0;
             }
             var criatura = {}
             try {
@@ -394,12 +394,12 @@ const getCpfs = async (cpf) => {
             content = response.data.response.content;
 
             criatura = {
-                nome: item.response.content.nome.conteudo.nome ? item.response.content.nome.conteudo.nome : "",
-                cpf: item.response.content.nome.conteudo.documento ? item.response.content.nome.conteudo.documento : "",
-                mae: item.response.content.nome.conteudo.mae ? item.response.content.nome.conteudo.mae : "",
-                telefoneFixo: item.response.content.pesquisa_telefones.conteudo.fixo.numero ? item.response.content.pesquisa_telefones.conteudo.fixo.numero : "",
-                telefone: item.response.content.pesquisa_telefones.conteudo.celular.telefone ? item.response.content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
-                parentes: item.response.content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(item.response.content.dados_parentes.conteudo.contato) : [],
+                nome: content.nome.conteudo.nome ? content.nome.conteudo.nome : "",
+                cpf: content.nome.conteudo.documento ? content.nome.conteudo.documento : "",
+                mae: content.nome.conteudo.mae ? content.nome.conteudo.mae : "",
+                telefoneFixo: content.pesquisa_telefones.conteudo.fixo.numero ? content.pesquisa_telefones.conteudo.fixo.numero : "",
+                telefone: content.pesquisa_telefones.conteudo.celular.telefone ? content.pesquisa_telefones.conteudo.celular.telefone.numero : "",
+                parentes: content.dados_parentes.existe_informacao != "NAO" ? extrairDadosParentes(content.dados_parentes.conteudo.contato) : [],
             };
 
         } catch (error) {
