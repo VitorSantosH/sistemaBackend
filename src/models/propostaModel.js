@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
+
 const propostaSchema = new mongoose.Schema({
-    ID_PROPOSTA: { type: Number, unique: true, required: true },
+    ID_PROPOSTA: { type: String, unique: false, default: "",  default: gerarIdAlfanumerico(20) },
     NOME: { type: String, default: "" },
     CLIENTE: { type: String, default: "" },
     CPF: { type: Number, required: true },
@@ -53,8 +54,27 @@ const propostaSchema = new mongoose.Schema({
     PORTABILIDADE_PRAZO_RESTANTE: { type: Number, default: null },
     PORTABILIDADE_SALDO_DEVEDOR: { type: String, default: "" },
     LINK: { type: String, default: "" },
+    HISTORICO: {
+        type: [{
+            DataAlteracao: { type: String },
+            Agente: { type: String }
+        }],
+        default: [], // Define o valor padrão como um array vazio
+        required: false // Define como não obrigatório
+
+    },
 });
 
+function gerarIdAlfanumerico(tamanho) {
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    for (let i = 0; i < tamanho; i++) {
+      const indice = Math.floor(Math.random() * caracteres.length);
+      id += caracteres.charAt(indice);
+    }
+    return id.toString();
+  }
+  
 
 
 module.exports = propostaSchema;

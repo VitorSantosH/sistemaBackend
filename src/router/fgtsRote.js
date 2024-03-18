@@ -3,10 +3,6 @@ const router = require('express').Router();
 const config = require('../config/.config.js')
 const axios = require('axios');
 const fs = require('fs');
-const xlsx = require('xlsx');
-const csvParser = require('csv-parser');
-const { Readable } = require('stream');
-const csv = require('csvtojson');
 const moment = require('moment');
 
 
@@ -14,12 +10,6 @@ const moment = require('moment');
 const conn = require('../config/mongoConfig.js');
 const propostaSchema = require('../models/propostaModel.js');
 const propostas = conn.model('pesquisaCpf', propostaSchema);
-
-
-// multer config
-const multer = require("multer");
-const multerConfig = require('../config/multer');
-
 
 //facta 
 
@@ -78,10 +68,75 @@ router.use(async (req, res, next) => {
 
 })
 
-router.post('/proposta/crete', async (req, res, next) => {
+router.post('/proposta/create', async (req, res, next) => {
 
-    console.log(req.body)
-    return res.send('ok')
+    try {
+        const novoRegistro = await new propostas({
+            NOME: req.body.name || '',
+            CLIENTE: req.body.name,
+            CPF: req.body.cpfValue,
+            DATA_NASCIMENTO: req.body.dataNacimento || null,
+            RG: req.body.RG || '',
+            DATA_RG: req.body.dataExpedicaoRg || null,
+            ORGAO_RG: req.body.emissorRg || '',
+            UF_RG: req.body.ufRg || '',
+            ESTADO_CIVIL: req.body.estadoCivil || '',
+            NOME_PAI: req.body.nomePai || '',
+            NOME_MAE: req.body.nomeMae || '',
+            SEXO: req.body.genero || '',
+            CEP: req.body.cep || null,
+            ENDERECO: req.body.endereco || '',
+            NUMERO: req.body.numero || null,
+            COMPLEMENTO: req.body.complemento || '',
+            BAIRRO: req.body.bairro || '',
+            CIDADE: req.body.cidade || '',
+            TELEFONE: req.body.celular || null,
+            ESTADO: req.body.estadoEndereco || '',
+            NATURALIDADE: req.body.naturalidadeUf || '',
+            BANCO: req.body.banco || '',
+            AGENCIA: req.body.agencia || null,
+            CONTA: req.body.nConta || '',
+            UF_MANTENEDORA: req.body.mantenededora || '',
+            UNIDADE_NEGOCIOS: '',
+            SUPERVISOR: '',
+            ID_TIPO_CONTA_PAGAMENTO: '',
+            ID_TIPO_CONTA: '',
+            POSSUI_REPRESENTANTE: req.body.representanteLegal || '',
+            FORMA_CONTRATO: req.body.formaContrato || '',
+            CONVENIO: req.body.convenioFinanciamanto || '',
+            FINANCEIRA_CIA: '',
+            TABELA_COMISSAO: req.body.tabelaCommissao || '',
+            AGENTE: req.body.agente || '',
+            AGENTE_ALTERACAO: '',
+            PRAZO: req.body.prazoComissao || null,
+            RENDA: req.body.renda || '',
+            VALOR_BASE_COMISSAO: req.body.valorBaseComissao || '',
+            NUMERO_ACOMPANHAMENTO: req.body.numeroAcompanhamento || null,
+            DATA_HORA_CADASTRO: null,
+            DATA_HORA: null,
+            ATIVO: null,
+            STATUS_PROPOSTA: '',
+            PARCELA: '',
+            PORTABILIDADE_MARGEM_AGREGADA: '',
+            PORTABILIDADE_PARCELA_FINAL: '',
+            PORTABILIDADE_VALOR_BASE_COMISSAO: '',
+            PORTABILIDADE_PRAZO_RESTANTE: null,
+            PORTABILIDADE_SALDO_DEVEDOR: '',
+            LINK: '',
+            HISTORICO: []
+        });
+
+        var status = await novoRegistro.save();
+
+        console.log(novoRegistro)
+        console.log(status)
+        return res.send({ novoRegistro, status });
+
+    } catch (error) {
+        res.status(400).send(error)
+    }
+
+
 })
 
 router.get('/propostas', async (req, res, next) => {
@@ -168,7 +223,17 @@ router.get('/propostas', async (req, res, next) => {
 
 })
 
+router.delete('/propostas/delete', async (req, res, next) => {
 
+    try {
+        const ret = await propostas.deleteMany({CPF : req.body.cpf})
+        res.send({ret});
+    } catch (error) {
+        console.log(error)
+        res.status(400).send(error)
+    }
+
+})
 
 router.get('/propostas-facta', async (req, res, next) => {
 
@@ -241,71 +306,6 @@ router.get('/propostas/cliente', async (req, res, next) => {
 
 })
 
-router.post('/upload-xls', multer(multerConfig).single('file'), async (req, res, next) => {
-
-    const file = req.file;
-
-    const retorno = convertXlsxToObject(file)
-
-    const propsInseridas = [];
-    let propostasJaExistentes = 0;
-    let errosAoInserir = [];
-    let propostaAtt = [];
-
-    try {
-        const promises = retorno.map(async (prop, index) => {
-
-            console.log(prop)
-
-            try {
-                const existenteProposta = await propostas.findOne({ ID_PROPOSTA: prop.ID_PROPOSTA });
-
-                if (!existenteProposta) {
-                    const propostaInserida = await propostas.create(prop);
-
-                    propsInseridas.push(propostaInserida);
-                    console.log('Proposta inserida com sucesso:', propostaInserida);
-                } else {
-
-                    const propostaAtualizada = await propostas.updateOne(
-                        { ID_PROPOSTA: prop.ID_PROPOSTA },
-                        { $set: prop }
-                    );
-
-                    propostaAtt.push(propostaAtualizada)
-
-                    //  propostasJaExistentes++
-                    //  console.log('Já existe uma proposta com o mesmo ID_PROPOSTA:', existenteProposta);
-                }
-            } catch (err) {
-
-                errosAoInserir.push(err)
-                console.error('Erro ao verificar ou inserir proposta:', err);
-            }
-        });
-
-        Promise.all(promises)
-            .then(() => {
-                // Tudo terminou, agora você pode enviar a resposta
-                res.status(200).json({
-                    propostasInseridas: propsInseridas,
-                    jaExistentes: propostasJaExistentes,
-                    errosInserir: errosAoInserir,
-                    atualizadas: propostaAtt
-                });
-            })
-            .catch((error) => {
-                // Se ocorreu algum erro durante as operações assíncronas, trate aqui
-                console.error('Erro ao processar as propostas:', error);
-                res.status(500).json({ error: 'Erro interno do servidor' });
-            });
-    } catch (error) {
-        return res.send("Erro: " + error)
-    }
-
-
-})
-
 router.post('/editeProposta', async (req, res, next) => {
 
     console.log(req.body)
@@ -339,15 +339,6 @@ router.post('/editeProposta', async (req, res, next) => {
 
 })
 
-function convertXlsxToObject(file) {
-
-    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const result = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    return result;
-}
-
 function tratarResposta(resposta) {
     let dados = {};
 
@@ -374,27 +365,6 @@ function tratarResposta(resposta) {
     }
 
     return dados;
-}
-
-function convertCsvFormat(csvData) {
-    const entries = Object.entries(csvData);
-    const result = {};
-
-    for (const [key, value] of entries) {
-        const fields = key.split(';');
-        const data = value.split(';');
-
-        const obj = {};
-        for (let i = 0; i < fields.length; i++) {
-            obj[fields[i]] = isNaN(data[i]) ? data[i] : parseFloat(data[i]);
-        }
-
-        result[key] = obj;
-    }
-
-    console.log(result)
-
-    return result;
 }
 
 async function getPropostasFacta(query) {
