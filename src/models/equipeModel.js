@@ -4,13 +4,13 @@ const Schema = mongoose.Schema;
 const equipeSchema = new Schema({
     nome: {
         type: String,
-        required: true,
+        required: false,
     },
     lider: {
         type: {
             nome: String,
         },
-        required: true,
+        required: false,
     },
     integrantes: [
         {
