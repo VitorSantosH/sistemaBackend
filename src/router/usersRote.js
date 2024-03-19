@@ -402,6 +402,16 @@ const updateUserPassword = async (req, res,) => {
 
 const deleteUser = async (req, res, next) => {
 
+    const deletedUser = await Users.findOneAndDelete({ email: req.body.email });
+
+    if (!deletedUser) {
+        return res.status(404).send("Usuário não encontrado.");
+    }
+
+    console.log(deleteUser)
+
+    return res.send(`Usuário com o email  foi excluído com sucesso.`);
+
     console.log(req.body)
 
     let decoded = {}
