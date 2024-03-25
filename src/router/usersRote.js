@@ -9,11 +9,12 @@ const conn = require('../config/mongoConfig.js');
 //schemas 
 const userSchema2 = require('../models/userModel.js');
 const solicitacaoSchema2 = require('../models/solicitacaoSchema');
+const EquipeModel = require('../models/equipeModel.js');
 
 // conexão 
 const Solicitacao = conn.model("userSolivitcacao", solicitacaoSchema2);
 const Users = conn.model('userSiscorban', userSchema2);
-
+const Equipe = conn.model('EquipeSiscorban', EquipeModel);
 
 
 const newSolicitacao = async (req, res,) => {
@@ -160,7 +161,7 @@ const generateUser = async (req, res, next) => {
 
     console.log(req.body)
 
-  
+
     const salt = await bcrypt.genSalt(10);
     const email = req.body.email;
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -172,15 +173,15 @@ const generateUser = async (req, res, next) => {
             password: hashedPassword,
             role: req.body.role,
             name: req.body.name,
-            
+
         })
-        .then(ret => {
-            return res.send(ret)
-        })
-        .catch(err => {
-            return res.send(err)
-        })
-      
+            .then(ret => {
+                return res.send(ret)
+            })
+            .catch(err => {
+                return res.send(err)
+            })
+
     } else {
 
         return res.send("Usuário já existe!")
@@ -402,16 +403,6 @@ const updateUserPassword = async (req, res,) => {
 
 const deleteUser = async (req, res, next) => {
 
-    const deletedUser = await Users.findOneAndDelete({ email: req.body.email });
-
-    if (!deletedUser) {
-        return res.status(404).send("Usuário não encontrado.");
-    }
-
-    console.log(deleteUser)
-
-    return res.send(`Usuário com o email  foi excluído com sucesso.`);
-
     console.log(req.body)
 
     let decoded = {}
@@ -521,13 +512,13 @@ const signin = async (req, res) => {
         return user
     })
 
-   // console.log(usuario)
+    // console.log(usuario)
 
     if (!usuario) {
         return res.status(400).send("Usuário inválido")
     }
 
-   
+
 
     const isMatch = bcrypt.compareSync(req.body.password, usuario.password)
 
@@ -550,6 +541,71 @@ const signin = async (req, res) => {
 
 }
 
+const createEquipe = async (req, res) => {
+
+    console.log(req.body)
+
+    return res.send("ok")
+    try {
+        const novoRegistro = await new Equipe({
+
+        });
+
+        var status = await novoRegistro.save();
+
+        console.log(novoRegistro)
+        console.log(status)
+        return res.send({ novoRegistro, status });
+
+    } catch (error) {
+        res.status(400).send(error)
+    }
+
+
+}
+
+const AutorizationMidlleware = async (req, res, next) => {
+
+    console.log(req.body)
+    console.log(req.data)
+    let decoded = {}
+
+    //verifica o token, se o token esta correto e se o usuario é admin
+    try {
+
+        decoded = jwt.decode(req.body.token, authSecret);
+
+        if (decoded.role != 'admin') {
+
+            let error = {
+                erro: true,
+                tipo: 'ERRO',
+                msg: 'Não autorizado',
+            }
+
+            return res.status(400).send(error)
+
+        }
+
+        console.log(decoded)
+
+       return next();
+
+    } catch (err) {
+
+        console.log(err)
+
+        const error = {
+            erro: true,
+            tipo: 'ERRO',
+            msg: 'Não autorizado',
+        }
+
+        return res.status(400).send(error)
+    }
+}
+routesUsers.use('/create/equipe', AutorizationMidlleware);
+routesUsers.post('/create/equipe', createEquipe);
 routesUsers.post('/update/userPassword', updateUserPassword);
 routesUsers.post('/solicitacoes/resolve', avlSolicitacao);
 routesUsers.post('/solicicoes', getSolicitacoes);
