@@ -161,7 +161,6 @@ const generateUser = async (req, res, next) => {
 
     console.log(req.body)
 
-
     const salt = await bcrypt.genSalt(10);
     const email = req.body.email;
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
@@ -184,7 +183,7 @@ const generateUser = async (req, res, next) => {
 
     } else {
 
-        return res.send("Usuário já existe!")
+        return res.status(350).send("Email já cadastrado!")
     }
 
 
@@ -195,38 +194,6 @@ const getUser = async (req, res,) => {
     let decoded = {}
 
     console.log('aqui')
-
-    //verifica o token, se o token esta correto e se o usuario é admin
-    try {
-
-        decoded = jwt.decode(req.body.token, authSecret);
-
-        if (decoded.role != 'admin') {
-
-            let error = {
-                erro: true,
-                tipo: 'ERRO',
-                msg: 'Não autorizado',
-            }
-
-            return res.status(400).send(error)
-
-        }
-
-        console.log(decoded)
-
-    } catch (err) {
-
-        console.log(err)
-
-        const error = {
-            erro: true,
-            tipo: 'ERRO',
-            msg: 'Não autorizado',
-        }
-
-        return res.status(400).send(error)
-    }
 
     // pega o usuario no banco de dados e retorna a solicitacao
     try {
@@ -461,42 +428,16 @@ const getUsers = async (req, res, next) => {
 
     console.log(req.body)
 
-    let decoded = {}
-
     try {
 
-        decoded = jwt.decode(req.body.token, authSecret);
+        const users = await Users.find({ role: { $ne: 'admin' } });
 
-        if (decoded.role != 'admin') {
-
-            let error = {
-                erro: true,
-                tipo: 'ERRO',
-                msg: 'Não autorizado',
-            }
-
-            return res.status(400).send(error)
-
-        }
-
-        console.log(decoded)
-
+        return res.send(users);
 
     } catch (error) {
-
-        console.log(error)
-
-        const err = {
-            erro: true,
-            tipo: 'ERRO',
-            msg: 'Não autorizado',
-        }
-
-        return res.status(400).send(err)
+        return res.status(350).send("Erro ao realizar consulta de vendedores")
     }
 
-    const users = await Users.find({ role: { $ne: 'admin' } })
-    return res.send(users)
 }
 
 const signin = async (req, res) => {
@@ -545,10 +486,17 @@ const createEquipe = async (req, res) => {
 
     console.log(req.body)
 
-    return res.send("ok")
+    let { name, lider } = req.body;
+
+    if (!name || name == "" || !lider || lider == "") {
+
+        return res.status(350).send("Faltam informações!")
+    }
+
     try {
         const novoRegistro = await new Equipe({
-
+            name: name,
+            lider: lider
         });
 
         var status = await novoRegistro.save();
@@ -567,13 +515,16 @@ const createEquipe = async (req, res) => {
 const AutorizationMidlleware = async (req, res, next) => {
 
     console.log(req.body)
-    console.log(req.data)
+    console.log(req.query)
+
+    const token = req.body.token || req.query.token;
+
     let decoded = {}
 
     //verifica o token, se o token esta correto e se o usuario é admin
     try {
 
-        decoded = jwt.decode(req.body.token, authSecret);
+        decoded = jwt.decode(token, authSecret);
 
         if (decoded.role != 'admin') {
 
@@ -589,7 +540,7 @@ const AutorizationMidlleware = async (req, res, next) => {
 
         console.log(decoded)
 
-       return next();
+        return next();
 
     } catch (err) {
 
@@ -604,17 +555,18 @@ const AutorizationMidlleware = async (req, res, next) => {
         return res.status(400).send(error)
     }
 }
-routesUsers.use('/create/equipe', AutorizationMidlleware);
-routesUsers.post('/create/equipe', createEquipe);
+
+
+routesUsers.post('/create/equipe', AutorizationMidlleware, createEquipe);
 routesUsers.post('/update/userPassword', updateUserPassword);
 routesUsers.post('/solicitacoes/resolve', avlSolicitacao);
 routesUsers.post('/solicicoes', getSolicitacoes);
 routesUsers.post("/solicitacao-nova-conta", newSolicitacao);
 routesUsers.post('/update', updateUser);
 routesUsers.post("/deleteuser", deleteUser);
-routesUsers.post("/generateUser", generateUser);
+routesUsers.post("/generateUser", AutorizationMidlleware, generateUser);
 routesUsers.post('/login', signin);
-routesUsers.post('/all', getUsers);
+routesUsers.get('/all', AutorizationMidlleware, getUsers);
 routesUsers.post('/getUser', getUser);
 //routesUsers.get('/', getUsers);
 
