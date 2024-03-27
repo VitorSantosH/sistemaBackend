@@ -161,11 +161,12 @@ router.get('/propostas', async (req, res, next) => {
 
     try {
 
+        const options = { upsert: true, new: true };
         const responseFacta = await getPropostasFacta(consulta);
-        console.log(responseFacta);
+        
         // Pega a resposta do Facta e atualiza o banco
         const ret = await Promise.all(responseFacta.map(async proposta => {
-            return findAndUpdate(proposta);
+            return findAndUpdate(proposta, options);
         }));
 
 
@@ -339,8 +340,8 @@ async function getPropostasFacta(query) {
     const url = 'https://webservice.facta.com.br/proposta/andamento-propostas?';
     const params = {
         // convenio: 3,
-        data_fim: '',
-        data_ini: '',
+        data_fim: query.dataFinal? query.dataFinal : "" ,
+        data_ini: query.dataInicial? query.dataInicial : "",
         averbador: '',
         cpf: queryData.CPF ? queryData.CPF : "",
         af: queryData.NUMERO_ACOMPANHAMENTO ? queryData.NUMERO_ACOMPANHAMENTO : "",
@@ -359,9 +360,7 @@ async function getPropostasFacta(query) {
     };
 
     const response = await axios.get(url, { params, headers })
-    console.log(response.data)
 
-    console.log(response.data)
     if (response.data.erro) {
         return [];
     }
