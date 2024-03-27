@@ -112,7 +112,7 @@ router.post('/proposta/create', async (req, res, next) => {
             RENDA: req.body.renda || '',
             VALOR_BASE_COMISSAO: req.body.valorBaseComissao || '',
             NUMERO_ACOMPANHAMENTO: req.body.numeroAcompanhamento || null,
-            DATA_HORA_CADASTRO: null,
+            DATA_HORA_CADASTRO: Date.now(),
             DATA_HORA: null,
             ATIVO: null,
             STATUS_PROPOSTA: "Em andamento",
@@ -140,9 +140,9 @@ router.post('/proposta/create', async (req, res, next) => {
 })
 
 router.get('/propostas', async (req, res, next) => {
+    console.log(req.query);
 
-    //console.log(req.query)
-    // verifica se veio dados na pesquisa id, cpf ou nome do cliente, caso nao tenha retorna todos as propostas
+    // Verifica se veio dados na pesquisa id, cpf ou nome do cliente, caso nao tenha retorna todos as propostas
     let query;
 
     const consulta = {};
@@ -153,44 +153,38 @@ router.get('/propostas', async (req, res, next) => {
                 consulta[key] = { $regex: req.query[key], $options: 'i' };
             } else if (key === "STATUS_PROPOSTA") {
                 consulta[key] = { $regex: req.query[key], $options: 'i' };
-            } else {
-                consulta[key] = req.query[key];
+            } else if (key === "CPF") {
+                consulta[key] = { $regex: req.query[key], $options: 'i' };
             }
         }
-
     }
 
-
     try {
-
         function objetoEstaVazio(objeto) {
-
             if (Object.keys(objeto).length > 1) {
-                return true
+                return true;
             } else if (objeto.key === "STATUS_PROPOSTA") {
-                return false
+                return false;
             }
-
-            return false
-
+            return false;
         }
 
-
         if (objetoEstaVazio(consulta)) {
-
-
             const responseFacta = await getPropostasFacta(consulta);
-
             console.log(responseFacta);
-
-
             // Pega a resposta do Facta e atualiza o banco
             const ret = await Promise.all(responseFacta.map(async proposta => {
                 return findAndUpdate(proposta);
             }));
         }
 
-        //  console.log(ret);
+        // Adiciona o filtro de data se as datas de pesquisa estiverem presentes
+        if (req.query.dataInicial && req.query.dataFinal) {
+            consulta.DATA_HORA_CADASTRO = {
+                $gte: new Date(req.query.dataInicial),
+                $lte: new Date(req.query.dataFinal)
+            };
+        }
 
         const retorno = await propostas.find(consulta);
         return res.send(retorno);
@@ -199,29 +193,7 @@ router.get('/propostas', async (req, res, next) => {
         console.error(err);
         return res.send("Erro: " + err);
     }
-
-
-    /* if (req.query.CPF) {
- 
-         query = { CPF: req.query.CPF };
- 
-     } else if (req.query.NUMERO_ACOMPANHAMENTO) {
- 
-         query = { NUMERO_ACOMPANHAMENTO: req.query.NUMERO_ACOMPANHAMENTO }
- 
-     } else if (req.query.NOME) {
-         query = { NOME: req.query.NOME };
-     } else {
- 
-         // const retorno = await propostas.find();
-         //return res.send(retorno)
-         query = undefined
-     }
- */
-
-
-
-})
+});
 
 router.delete('/propostas/delete', async (req, res, next) => {
 
@@ -486,11 +458,54 @@ function convertFactaForMongo(proposta) {
 
 }
 
+const atualizarPropostasSemDataHora = async () => {
+    try {
+        // Encontrar todas as propostas onde DATA_HORA_CADASTRO e DATA_HORA são nulos
+        const propostasSemDataHora = await propostas.find({
+            DATA_HORA_CADASTRO: null,
+            DATA_HORA: null
+        });
+
+        // Obter a data e hora atual
+        const dataAtual = new Date();
+
+        // Atualizar cada proposta encontrada
+        const atualizacoes = propostasSemDataHora.map(async proposta => {
+            proposta.DATA_HORA_CADASTRO = dataAtual;
+            proposta.DATA_HORA = dataAtual;
+            return proposta.save();
+        });
+
+        // Aguardar todas as atualizações
+        await Promise.all(atualizacoes);
+
+        console.log('Propostas atualizadas com sucesso, total: ' + propostasSemDataHora.length);
+
+    } catch (error) {
+        console.error('Erro ao atualizar propostas:', error);
+    }
+};
+
+atualizarPropostasSemDataHora();
 
 const fgtsRoute = router
 
 module.exports = fgtsRoute;
 
+
+// utilitarios
+
+function DataString(n = 0) {
+
+    var dataAtual = new Date();
+    dataAtual.setMonth(dataAtual.getMonth() + 1);
+    var dia = dataAtual.getDate() + n;
+    var mes = dataAtual.getMonth();
+    var ano = dataAtual.getFullYear();
+    var dataFormatada = ano + '-' + (mes < 10 ? '0' : '') + mes + '-' + (dia < 10 ? '0' : '') + dia;
+
+    return dataFormatada
+}
 
 /**
  * 
