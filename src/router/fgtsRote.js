@@ -160,23 +160,14 @@ router.get('/propostas', async (req, res, next) => {
     }
 
     try {
-        function objetoEstaVazio(objeto) {
-            if (Object.keys(objeto).length > 1) {
-                return true;
-            } else if (objeto.key === "STATUS_PROPOSTA") {
-                return false;
-            }
-            return false;
-        }
 
-        if (objetoEstaVazio(consulta)) {
-            const responseFacta = await getPropostasFacta(consulta);
-            console.log(responseFacta);
-            // Pega a resposta do Facta e atualiza o banco
-            const ret = await Promise.all(responseFacta.map(async proposta => {
-                return findAndUpdate(proposta);
-            }));
-        }
+        const responseFacta = await getPropostasFacta(consulta);
+        console.log(responseFacta);
+        // Pega a resposta do Facta e atualiza o banco
+        const ret = await Promise.all(responseFacta.map(async proposta => {
+            return findAndUpdate(proposta);
+        }));
+
 
         // Adiciona o filtro de data se as datas de pesquisa estiverem presentes
         if (req.query.dataInicial && req.query.dataFinal) {
@@ -185,6 +176,8 @@ router.get('/propostas', async (req, res, next) => {
                 $lte: new Date(req.query.dataFinal)
             };
         }
+
+        console.log(consulta)
 
         const retorno = await propostas.find(consulta);
         return res.send(retorno);
@@ -198,8 +191,8 @@ router.get('/propostas', async (req, res, next) => {
 router.delete('/propostas/delete', async (req, res, next) => {
 
     try {
-        const ret = await propostas.deleteMany({CPF : req.body.cpf})
-        res.send({ret});
+        const ret = await propostas.deleteMany({ CPF: req.body.cpf })
+        res.send({ ret });
     } catch (error) {
         console.log(error)
         res.status(400).send(error)
